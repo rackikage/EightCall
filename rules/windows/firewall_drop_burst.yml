@@ -42,3 +42,28 @@ correlation:
 falsepositives:
   - Port-scanning inventory tools
 level: medium
+---
+title: Windows Firewall Distributed Drop Burst Toward SMB or RDP
+id: 8f2c1a44-5d3b-4c7e-9a10-2b6e4f8d1c03
+status: experimental
+description: >
+  More than 20 firewall drops toward SMB or RDP within five minutes, grouped by
+  destination port rather than source. Catches a distributed source pool that
+  keeps each individual source below the per-source threshold used by
+  ...c02, so spread sources still accumulate toward the same service.
+author: Eight Call
+date: 2026-09-21
+tags:
+  - attack.t1021.002
+correlation:
+  type: event_count
+  rules:
+    - 8f2c1a44-5d3b-4c7e-9a10-2b6e4f8d1c01
+  group-by:
+    - dst_port
+  timespan: 5m
+  condition:
+    gte: 21
+falsepositives:
+  - Authorised vulnerability scanning across a host range
+level: medium
