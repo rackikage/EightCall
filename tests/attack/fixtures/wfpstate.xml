@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wfpstate>
+  <filters>
+    <item>
+      <filterKey>{6d51582f-bcf8-42c4-afc9-e2ce7155c11b}</filterKey>
+      <displayData>
+        <name>Block Outbound Default Rule</name>
+        <description>Block Outbound Default Rule</description>
+      </displayData>
+      <layerKey>FWPM_LAYER_ALE_AUTH_CONNECT_V4</layerKey>
+      <action>
+        <type>FWP_ACTION_BLOCK</type>
+      </action>
+      <filterId>68893</filterId>
+    </item>
+    <item>
+      <filterKey>{e62a1a22-c80a-4518-a7f8-e7d1ef3a9ff6}</filterKey>
+      <displayData>
+        <name>Block Outbound Default Rule</name>
+        <description>Block Outbound Default Rule</description>
+      </displayData>
+      <layerKey>FWPM_LAYER_ALE_AUTH_CONNECT_V4</layerKey>
+      <action>
+        <type>FWP_ACTION_BLOCK</type>
+      </action>
+      <filterId>121180</filterId>
+    </item>
+    <item>
+      <filterKey>{3389708e-f7ae-4ebc-a61a-f659065ab24e}</filterKey>
+      <displayData>
+        <name>InternetClient Default Rule</name>
+        <description>InternetClient Default Rule</description>
+      </displayData>
+      <layerKey>FWPM_LAYER_ALE_AUTH_CONNECT_V4</layerKey>
+      <action>
+        <type>FWP_ACTION_PERMIT</type>
+      </action>
+      <filterId>125918</filterId>
+    </item>
+  </filters>
+</wfpstate>

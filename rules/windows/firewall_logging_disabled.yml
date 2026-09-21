@@ -1,0 +1,24 @@
+title: Windows Firewall Logging Disabled via Registry
+id: d5f3b8e6-9c21-4a7d-8e30-1b6f4a9c7e05
+status: experimental
+description: Firewall logging flags are set to zero for a profile, blinding dropped-packet and success-connection telemetry.
+references:
+  - https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/configure-logging
+author: Eight Call
+date: 2026-09-21
+tags:
+  - attack.t1562.004
+logsource:
+  category: registry_set
+  product: windows
+detection:
+  selection_key:
+    TargetObject|endswith:
+      - '\Logging\EnableLogDroppedPackets'
+      - '\Logging\EnableLogSuccessConnections'
+  selection_value:
+    Details: 'DWORD (0x00000000)'
+  condition: selection_key and selection_value
+falsepositives:
+  - Logging intentionally disabled by policy on non-managed hosts
+level: medium

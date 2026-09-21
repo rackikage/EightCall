@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wfpstate>
+  <filters>
+    <item>
+      <filterKey>{6d51582f-bcf8-42c4-afc9-e2ce7155c11b}</filterKey>
+      <displayData>
+        <name>Corporate Egress Policy</name>
+        <description>Corporate Egress Policy</description>
+      </displayData>
+      <layerKey>FWPM_LAYER_ALE_AUTH_CONNECT_V4</layerKey>
+      <action>
+        <type>FWP_ACTION_BLOCK</type>
+      </action>
+      <filterId>68893</filterId>
+    </item>
+  </filters>
+</wfpstate>

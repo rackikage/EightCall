@@ -1,0 +1,26 @@
+title: WFP Default Block Drop Despite Capability Tokens
+id: 6b1d8f03-4a2c-4e77-b5d9-0f7a3c1e9d03
+status: experimental
+description: A WFP classify-drop terminated by the Block Outbound Default Rule while capability tokens are present, the misconfigured private-range or missing-capability signature.
+references:
+  - https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/troubleshooting-uwp-firewall
+author: Eight Call
+date: 2026-09-21
+tags:
+  - attack.t1071
+logsource:
+  product: windows
+  service: wfp
+detection:
+  selection:
+    action: drop
+    default_block: true
+    capability_count:
+      - 1
+      - 2
+      - 3
+      - 4
+  condition: selection
+falsepositives:
+  - Private ranges not covered by MDM or Group Policy
+level: low

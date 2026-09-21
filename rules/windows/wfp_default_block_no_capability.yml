@@ -1,0 +1,22 @@
+title: WFP Default Block Drop Without Capability Tokens
+id: 3a7e5c92-1d64-4b08-8f21-9c4d2e6a5b02
+status: experimental
+description: A WFP classify-drop terminated by the Block Outbound Default Rule for a package with no capability tokens, the UWP network-isolation signature.
+references:
+  - https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/troubleshooting-uwp-firewall
+author: Eight Call
+date: 2026-09-21
+tags:
+  - attack.t1071
+logsource:
+  product: windows
+  service: wfp
+detection:
+  selection:
+    action: drop
+    default_block: true
+    capability_count: 0
+  condition: selection
+falsepositives:
+  - UWP apps shipped without network capability declarations
+level: low

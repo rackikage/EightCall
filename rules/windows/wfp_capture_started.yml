@@ -1,0 +1,26 @@
+title: Windows Filtering Platform Capture Started
+id: c2e9a7d1-3f58-4c6b-a0e4-8d1b5f7c2a04
+status: experimental
+description: netsh starts a WFP diagnostic capture, which collects allow and drop netEvents plus filter state for later analysis.
+references:
+  - https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/troubleshooting-uwp-firewall
+author: Eight Call
+date: 2026-09-21
+tags:
+  - attack.discovery
+  - attack.t1046
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+    Image|endswith: '\netsh.exe'
+  selection_cmd:
+    CommandLine|contains|all:
+      - wfp
+      - capture
+      - start
+  condition: selection_img and selection_cmd
+falsepositives:
+  - Administrators troubleshooting firewall drops
+level: informational

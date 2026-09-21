@@ -1,0 +1,44 @@
+title: Windows Firewall Drop to SMB or RDP
+id: 8f2c1a44-5d3b-4c7e-9a10-2b6e4f8d1c01
+status: experimental
+description: A single firewall drop toward SMB (445) or RDP (3389).
+references:
+  - https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/configure-logging
+author: Eight Call
+date: 2026-09-21
+tags:
+  - attack.t1021.002
+logsource:
+  category: firewall
+  product: windows
+detection:
+  selection:
+    action: DROP
+    dst_port:
+      - 445
+      - 3389
+  condition: selection
+falsepositives:
+  - Vulnerability scanners
+level: informational
+---
+title: Windows Firewall Drop Burst Toward SMB or RDP
+id: 8f2c1a44-5d3b-4c7e-9a10-2b6e4f8d1c02
+status: experimental
+description: More than 20 firewall drops from a single source toward SMB or RDP within five minutes.
+author: Eight Call
+date: 2026-09-21
+tags:
+  - attack.t1021.002
+correlation:
+  type: event_count
+  rules:
+    - 8f2c1a44-5d3b-4c7e-9a10-2b6e4f8d1c01
+  group-by:
+    - src_ip
+  timespan: 5m
+  condition:
+    gte: 21
+falsepositives:
+  - Port-scanning inventory tools
+level: medium
