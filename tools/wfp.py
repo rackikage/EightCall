@@ -10,6 +10,13 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 
 DEFAULT_BLOCK = "Block Outbound Default Rule"
+# Structural markers for the WFP built-in default-block filters. The display name
+# is attacker/policy-mutable metadata; the sublayer is part of the WFP rule set
+# shipped by the OS. Matching on structure survives a renamed filter.
+WSH_SUBLAYER = "FWPP_SUBLAYER_INTERNAL_FIREWALL_WSH"
+DEFAULT_BLOCK_LAYERS = ("FWPM_LAYER_ALE_AUTH_CONNECT_V4", "FWPM_LAYER_ALE_AUTH_CONNECT_V6")
+# layerId is a numeric index into the WFP layer table; ALE_AUTH_CONNECT is 48/50.
+DEFAULT_BLOCK_LAYER_IDS = ("48", "50")
 
 
 def _text(node, path):
@@ -77,6 +84,7 @@ def load_state(path):
         filters[fid] = {
             "name": _text(item, "displayData/name"),
             "layer": _text(item, "layerKey"),
+            "sublayer": _text(item, "subLayerKey"),
             "action": _text(item, "action/type"),
         }
     return filters
@@ -92,7 +100,20 @@ def record(ev, filters):
         action = event_type
     terminating = _terminating(ev)
     block = next((t for t in terminating if t["action"] == "FWP_ACTION_BLOCK"), None)
-    filter_name = filters.get(block["filter_id"], {}).get("name") if block else None
+    filter_def = filters.get(block["filter_id"], {}) if block else {}
+    filter_name = filter_def.get("name")
+    classify = _classify(ev, "Drop" if (event_type or "").endswith("CLASSIFY_DROP") else "Allow")
+    layer_id = classify.get("layerId")
+    # Structural default-block signal: a block terminating on the WSH sublayer at
+    # the ALE_AUTH_CONNECT layer is the OS built-in outbound default rule,
+    # regardless of what its display name has been changed to.
+    block_sublayer = block["sublayer"] if block else None
+    structural = bool(
+        block
+        and block_sublayer == WSH_SUBLAYER
+        and (layer_id in DEFAULT_BLOCK_LAYER_IDS
+             or filter_def.get("layer") in DEFAULT_BLOCK_LAYERS)
+    )
     rec = {
         "ts": _text(ev, "header/timeStamp"),
         "action": action,
@@ -112,7 +133,9 @@ def record(ev, filters):
     rec["capability_count"] = len(rec["capabilities"])
     rec["block_filter_id"] = block["filter_id"] if block else None
     rec["block_filter_name"] = filter_name
+    rec["block_sublayer"] = block_sublayer
     rec["default_block"] = filter_name == DEFAULT_BLOCK
+    rec["default_block_structural"] = structural
     return rec
 
 

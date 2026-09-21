@@ -8,6 +8,7 @@
         <description>Corporate Egress Policy</description>
       </displayData>
       <layerKey>FWPM_LAYER_ALE_AUTH_CONNECT_V4</layerKey>
+      <subLayerKey>FWPM_SUBLAYER_MPSSVC_WSH</subLayerKey>
       <action>
         <type>FWP_ACTION_BLOCK</type>
       </action>
