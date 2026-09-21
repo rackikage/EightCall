@@ -10,6 +10,7 @@ so a misfire is visible instead of silently ending a session.
     transcript.py scan --category bio    filter by category code
     transcript.py scan --json            machine-readable records
     transcript.py sessions               list sessions with refusal counts
+    transcript.py lineage [path ...]     flag-lineage: content refusal -> synthetic kill
 """
 from __future__ import annotations
 
@@ -130,6 +131,62 @@ def cmd_sessions(paths) -> int:
     return 0
 
 
+def cmd_lineage(paths) -> int:
+    """Per session: order refusals, classify content-refusal vs synthetic kill.
+
+    A content refusal emitted tokens (something was evaluated). A synthetic kill
+    has model=<synthetic> and zero tokens (nothing was evaluated). A session whose
+    first event is a content refusal and whose later events are synthetic kills
+    shows the escalation path, and is the shape that predicts a dead session.
+    """
+    files = [Path(p) for p in paths] if paths else find_transcripts(DEFAULT_ROOT)
+    sessions = {}
+    for path in files:
+        events = list(refusal_events(path))
+        if events:
+            sessions[path.stem] = sorted(events, key=lambda e: e["line"])
+
+    if not sessions:
+        print("no refusal events found")
+        return 0
+
+    rows = []
+    for sess, events in sessions.items():
+        cats = sorted({e["category"] for e in events})
+        first = events[0]
+        content = [e for e in events if not e["synthetic"]]
+        synthetic = [e for e in events if e["synthetic"]]
+        escalated = bool(content) and bool(synthetic) and synthetic[0]["line"] > content[-1]["line"]
+        rows.append({
+            "session": sess,
+            "n": len(events),
+            "cats": cats,
+            "content": len(content),
+            "synthetic": len(synthetic),
+            "escalated": escalated,
+            "first_category": first["category"],
+            "first_line": first["line"],
+        })
+    rows.sort(key=lambda r: (-r["n"], r["session"]))
+
+    print(f"{'session':46s} {'n':>3s} {'content':>7s} {'synth':>5s}  {'escalated':9s} cats")
+    for r in rows:
+        print(f"{r['session'][:46]:46s} {r['n']:>3d} {r['content']:>7d} {r['synthetic']:>5d}  "
+              f"{'yes' if r['escalated'] else 'no':9s} {','.join(r['cats'])}")
+    print()
+    esc = [r for r in rows if r["escalated"]]
+    dead = [r for r in rows if r["n"] == r["synthetic"] and r["n"] > 0]
+    print(f"sessions: {len(rows)}  escalated (content -> synthetic): {len(esc)}  "
+          f"all-synthetic (never reached model): {len(dead)}")
+    print()
+    print("reading:")
+    print("  content  = stop_reason=refusal with tokens emitted (something was evaluated)")
+    print("  synth    = model=<synthetic>, 0 tokens (nothing was evaluated; API-layer kill)")
+    print("  escalated sessions show the content-refusal -> synthetic-kill progression")
+    print("  all-synthetic sessions were terminated without any evaluation")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="transcript.py")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -142,9 +199,14 @@ def main(argv: list[str]) -> int:
     p = sub.add_parser("sessions", help="sessions that contain refusals")
     p.add_argument("paths", nargs="*")
 
+    p = sub.add_parser("lineage", help="content-refusal vs synthetic-kill progression")
+    p.add_argument("paths", nargs="*")
+
     args = ap.parse_args(argv)
     if args.cmd == "scan":
         return cmd_scan(args.paths, args.category, args.json)
+    if args.cmd == "lineage":
+        return cmd_lineage(args.paths)
     return cmd_sessions(args.paths)
 
 
