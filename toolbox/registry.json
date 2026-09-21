@@ -1,0 +1,215 @@
+{
+  "generated": "2026-09-18T16:31:11.301Z",
+  "count": 19,
+  "items": [
+    {
+      "id": "health",
+      "name": "Health",
+      "description": "actions/health.sh — ICMP liveness probe for one target.",
+      "category": "actions",
+      "path": "/Users/francishelene/pods/actions/health.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750119,
+      "size": 434
+    },
+    {
+      "id": "inventory",
+      "name": "Inventory",
+      "description": "actions/inventory.sh — passive inventory: reverse DNS + ARP table MAC +",
+      "category": "actions",
+      "path": "/Users/francishelene/pods/actions/inventory.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750140,
+      "size": 1049
+    },
+    {
+      "id": "probe",
+      "name": "Probe",
+      "description": "actions/probe.sh — TCP-port reachability sweep against one target.",
+      "category": "actions",
+      "path": "/Users/francishelene/pods/actions/probe.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750129,
+      "size": 1052
+    },
+    {
+      "id": "heat-watch",
+      "name": "Heat Watch",
+      "description": "heat-watch.sh — quick Mac thermal + load diagnostic",
+      "category": "Desktop",
+      "path": "/Users/francishelene/Desktop/heat-watch.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789747242936,
+      "size": 943
+    },
+    {
+      "id": "composio-connect",
+      "name": "Composio Connect",
+      "description": "Mint Composio Connect auth links for one or more toolkits.",
+      "category": "francishelene",
+      "path": "/Users/francishelene/composio-connect.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789449308721,
+      "size": 2976
+    },
+    {
+      "id": "composio-crawl",
+      "name": "Composio Crawl",
+      "description": "Crawl every Composio toolkit page and build a metadata map.\"\"\"",
+      "category": "francishelene",
+      "path": "/Users/francishelene/composio_crawl.py",
+      "lang": "py",
+      "interpreter": "python3",
+      "mtime": 1789449695827,
+      "size": 3998
+    },
+    {
+      "id": "cluster",
+      "name": "Cluster",
+      "description": "cluster.sh — the ONLY sanctioned way to mutate cluster.conf (CLUSTER LAW v1).",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/cluster.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750073,
+      "size": 8649
+    },
+    {
+      "id": "controllerd",
+      "name": "Controllerd",
+      "description": "",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/controllerd.py",
+      "lang": "py",
+      "interpreter": "python3",
+      "mtime": 1789709750042,
+      "size": 4522
+    },
+    {
+      "id": "controllerd-2",
+      "name": "Controllerd",
+      "description": "controllerd.sh — start/stop/status wrapper for controllerd.py.",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/controllerd.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750031,
+      "size": 3042
+    },
+    {
+      "id": "fire",
+      "name": "Fire",
+      "description": "fire.sh — hard stop for the pods control plane.",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/fire.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750020,
+      "size": 1424
+    },
+    {
+      "id": "lib-eligibility",
+      "name": "Lib Eligibility",
+      "description": "lib_eligibility.sh — helpers shared by rotator.sh and the tests.",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/lib_eligibility.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750051,
+      "size": 1954
+    },
+    {
+      "id": "lib-safety-gate",
+      "name": "Lib Safety Gate",
+      "description": "lib_safety_gate.sh — CLUSTER LAW v1 enforcement (read-only helpers).",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/lib_safety_gate.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750064,
+      "size": 4916
+    },
+    {
+      "id": "pod",
+      "name": "Pod",
+      "description": "pod.sh — C: run one defined action against one target.",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/pod.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709749986,
+      "size": 5267
+    },
+    {
+      "id": "rotator",
+      "name": "Rotator",
+      "description": "rotator.sh — B: read triggers from A, pick an eligible target, dispatch",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/rotator.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709750010,
+      "size": 6218
+    },
+    {
+      "id": "watcher",
+      "name": "Watcher",
+      "description": "watcher.sh — A: every W seconds, scan owned targets and emit triggers",
+      "category": "pods",
+      "path": "/Users/francishelene/pods/watcher.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789709749998,
+      "size": 5338
+    },
+    {
+      "id": "heat-guard",
+      "name": "Heat Guard",
+      "description": "heat-guard.sh — watches for overheating / runaway load and fires a macOS",
+      "category": "Scripts",
+      "path": "/Users/francishelene/Library/Scripts/heat-guard.sh",
+      "lang": "sh",
+      "interpreter": "bash",
+      "mtime": 1789747600543,
+      "size": 1767
+    },
+    {
+      "id": "spotify-pkce",
+      "name": "Spotify Pkce",
+      "description": "",
+      "category": "Spotify playlsit creation ",
+      "path": "/Users/francishelene/Desktop/spotify-browser/Spotify playlsit creation /spotify-pkce.py",
+      "lang": "py",
+      "interpreter": "python3",
+      "mtime": 1789490739500,
+      "size": 13335
+    },
+    {
+      "id": "extract-cookies",
+      "name": "Extract Cookies",
+      "description": "",
+      "category": "spotify-browser",
+      "path": "/Users/francishelene/Desktop/spotify-browser/extract_cookies.py",
+      "lang": "py",
+      "interpreter": "python3",
+      "mtime": 1789676804631,
+      "size": 2398
+    },
+    {
+      "id": "extract2",
+      "name": "Extract2",
+      "description": "",
+      "category": "spotify-browser",
+      "path": "/Users/francishelene/Desktop/spotify-browser/extract2.py",
+      "lang": "py",
+      "interpreter": "python3",
+      "mtime": 1789493713443,
+      "size": 780
+    }
+  ]
+}

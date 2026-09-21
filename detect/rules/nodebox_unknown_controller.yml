@@ -1,0 +1,21 @@
+title: Nodebox — Unknown Controller Rejected
+id: 6f1a2c30-9d44-4c11-8f01-2b7e5a9c1d10
+status: experimental
+description: >
+  A node refused to create a session because the controller's identity did not
+  match its pinned key. This is the agent's controller-authentication boundary
+  firing: an unknown or substituted controller tried to talk to a node.
+logsource:
+  product: nodebox
+  category: application
+detection:
+  sel:
+    event_type: nodebox.session
+    data.transition: AUTH_REJECTED
+  condition: sel
+falsepositives:
+  - A controller key rotation done without re-pinning the node.
+level: high
+tags:
+  - attack.command-and-control
+  - attack.t1090

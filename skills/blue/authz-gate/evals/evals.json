@@ -1,0 +1,29 @@
+{
+  "skill_name": "authz-gate",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're building an internal ops tool where engineers can restart services and read audit logs. Right now it just runs shell commands from a web form. Make it safe.",
+      "expected_output": "Designs a structured command gateway: typed command catalog, strict parameter schemas, default-deny policy with scoped roles, fixed handlers with shell_access false, an 8-step enforcement order, and audit records. Explicitly rejects the raw-shell-string design and explains why (injection, unvalidatable intent). References the policy/command schema.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our AI agent has a tool that can run arbitrary bash to fix deployments. Product wants to keep it. What do we do?",
+      "expected_output": "Refuses the arbitrary-shell tool as designed; replaces it with allowlisted, typed actions behind the authorization gate. Covers prompt injection (agent inputs are untrusted data; the model must not sit in the authorization path), human approval for high-impact actions, isolation/allowlisting of external agents, and audit of agent-requested actions. Fails closed.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Write the authorization policy for production restarts and show how a request is evaluated.",
+      "expected_output": "Produces a default-deny policy (roles/actions/constraints/approvals/denials) and walks a concrete request through the enforcement order. Should include requires_approval for production, separation of duties (no self-approval), and a fail-closed explanation for unknown/ambiguous states. May reference scripts/eval_policy.py.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Audit logs live on the same host as the service they record. Is that a problem?",
+      "expected_output": "A SHORT analysis answer identifying that a component able to act can also tamper with its own audit trail; recommends append-only/tamper-evident (hash-chained or WORM) logs written off-host, immutable records with request IDs and attribution, logging denials as well as permits, and independent audit of policy changes. Should not balloon into a full multi-section design doc.",
+      "files": []
+    }
+  ]
+}

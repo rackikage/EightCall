@@ -1,0 +1,2 @@
+# Nmap 7.99 scan initiated Fri Sep 18 15:18:29 2026 as: nmap -Pn -sT -sV --version-light --open -p- -oA hunt/ipad01 192.168.8.122
+# Nmap done at Fri Sep 18 15:19:17 2026 -- 1 IP address (1 host up) scanned in 47.98 seconds

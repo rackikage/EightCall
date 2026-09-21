@@ -1,0 +1,28 @@
+title: HiLink — Session/Token Abuse (wrong-session error bursts)
+id: a1f7c204-3b8e-4d55-9c11-0e2f4a6b7c01
+status: experimental
+description: >
+  Huawei HiLink API (EMUI webui) responses carrying code 125002 (wrong session)
+  or 125003 (wrong session token). A burst of these means a client is replaying
+  a stale/foreign SessionID or CSRF token -- the shape of session-replay and
+  token-guessing against the router's HTTP admin API (T1078 / T1110).
+logsource:
+  product: hilink
+  category: application
+detection:
+  wrong_session:
+    error.code: 125002
+  wrong_session_token:
+    error.code: 125003
+  condition: wrong_session or wrong_session_token
+fields:
+  - src_ip
+  - url
+  - error.code
+falsepositives:
+  - A browser tab left open past session expiry (single retry, then re-auth).
+level: medium
+tags:
+  - attack.defense-evasion
+  - attack.t1078
+  - attack.t1110

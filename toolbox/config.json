@@ -1,0 +1,12 @@
+{
+  "host": "127.0.0.1",
+  "port": 7842,
+  "runTimeoutSec": 45,
+  "maxDepth": 2,
+  "extensions": [".sh", ".py", ".js", ".ts", ".rb"],
+  "ignore": ["node_modules", ".git", ".Trash", "Caches", ".cache", "venv", ".venv", "site-packages", "dist", "build", "runs"],
+  "sources": ["~/Desktop", "~/Library/Scripts", "~/pods", "~"],
+  "watchRoots": ["~/toolbox/watch"],
+  "watchDepth": 3,
+  "launchTargets": {}
+}

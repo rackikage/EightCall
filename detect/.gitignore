@@ -1,0 +1,29 @@
+# venv (symlink to the parent venv; recreate with: python3 -m venv venv69)
+/venv69
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.ruff_cache/
+
+# authz gate runtime state (generated, not source)
+authz_audit.jsonl
+authz_nonces.log
+keys/
+
+# redaction findings output (generated; records hash real secrets — never source)
+findings.jsonl
+*.findings.jsonl
+
+# nodebox runtime state (generated: identities, demo inventory, telemetry)
+nodebox_demo_state/
+nodebox_telemetry.jsonl
+nodebox_demo_state
+
+# macOS
+.DS_Store
+
+# live capture / collector runtime logs (generated)
+collected_events.log
+live_capture.log

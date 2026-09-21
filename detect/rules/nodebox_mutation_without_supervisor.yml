@@ -1,0 +1,23 @@
+title: Nodebox — Mutating Action Without Supervisor Attribution
+id: 9e4d5f63-2077-4f44-bc34-5ea17d2f4033
+status: experimental
+description: >
+  A state-changing capability (SYNC_CONFIG / UPDATE_RULESET / RESTART_SERVICE)
+  succeeded, but the node's signed attestation only reaches the PROCESS layer --
+  no service manager (launchd/systemd) is attributed. Legitimate maintenance is
+  launched by an approved supervisor; a mutating action with attestation depth
+  PROCESS means it cannot be attributed to a declared service unit.
+logsource:
+  product: nodebox
+  category: application
+detection:
+  mutating_ok:
+    event_type: nodebox.command
+    data.mutating: true
+    data.outcome: ok
+  no_supervisor:
+    provenance.attestation_depth: PROCESS
+  condition: mutating_ok and no_supervisor
+level: medium
+tags:
+  - attack.persistence

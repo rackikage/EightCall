@@ -1,0 +1,14 @@
+# Wildcard is required: Docker's published-port DNAT targets the container IP,
+# not its loopback. Safe ONLY because compose.yaml publishes this as
+# 127.0.0.1:2222:22 — never drop that host-side 127.0.0.1 prefix.
+ListenAddress 0.0.0.0
+Port 22
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+AllowUsers gw
+AllowTcpForwarding local
+PermitOpen 127.0.0.1:8080 127.0.0.1:80
+X11Forwarding no
+AuthorizedKeysFile .ssh/authorized_keys

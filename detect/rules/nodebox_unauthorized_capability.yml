@@ -1,0 +1,19 @@
+title: Nodebox — Unauthorized Capability Denied
+id: 7c2b3d41-0e55-4d22-9a12-3c8f6b0d2e21
+status: experimental
+description: >
+  A typed capability was refused because it was not in the node's local
+  allowlist or the controller policy. Either an operator asked for something
+  out of policy, or something is probing the node for capabilities it should
+  not exercise.
+logsource:
+  product: nodebox
+  category: application
+detection:
+  sel:
+    event_type: nodebox.command
+    data.outcome: denied
+  condition: sel
+level: medium
+tags:
+  - attack.execution

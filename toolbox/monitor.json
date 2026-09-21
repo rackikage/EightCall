@@ -1,0 +1,50 @@
+{
+  "generated": "2026-09-18T16:54:10.666Z",
+  "entries": {
+    "/Users/francishelene/toolbox/watch/(r) demo-heat": {
+      "folder": "/Users/francishelene/toolbox/watch/(r) demo-heat",
+      "firstSeen": "2026-09-18T16:36:13.145Z",
+      "name": "(r) demo-heat",
+      "state": "ready",
+      "present": true,
+      "lastSeen": "2026-09-18T16:42:07.781Z",
+      "target": {
+        "script": "heat-watch",
+        "nodes": [],
+        "args": []
+      },
+      "dispatch": {
+        "id": "5ae584a49c",
+        "dispatchedAt": "2026-09-18T16:36:13.151Z",
+        "runs": [
+          {
+            "node": "heat-watch",
+            "label": "Heat Watch",
+            "path": "/Users/francishelene/Desktop/heat-watch.sh",
+            "interpreter": "bash",
+            "pid": 3364,
+            "log": "/Users/francishelene/toolbox/runs/5ae584a49c__main.log",
+            "exit": "/Users/francishelene/toolbox/runs/5ae584a49c__main.exit",
+            "startedAt": "2026-09-18T16:36:13.151Z",
+            "status": "done",
+            "exitCode": 0,
+            "outputTail": "==================== HEAT WATCH ====================\nSat Sep 19 02:36:13 AEST 2026\n\nCPU speed limit : 100%   (100 = full speed; low = overheating/throttled)\nLogical cores   : 12\nLoad average    : 3.02 4.15 15.76 \n                  (load near or above 12 = CPU maxed out)\n\n---- Top 12 CPU hogs ----\n %CPU   PID COMM\n 11.8 67032 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)\n 11.7  1088 /System/Library/Services/AppleSpell.service/Contents/MacOS/AppleSpell\n  5.7 66628 /Applications/Claude.app/Contents/MacOS/Claude\n  4.0   226 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer\n  3.7 28342 /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/154.0.8037.45/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)\n  3.3 67189 /Users/francishelene/Library/Application Support/Claude/Claude Extensions/ant.dir.gh.cursortouch.macos-mcp/.venv/bin/python\n  2.2 67190 /Users/francishelene/Library/Application Support/Claude/Claude Extensions/ant.dir.gh.cursortouch.macos-mcp/.venv/bin/python\n  2.1  3360 /bin/bash\n  2.0 66991 /Applications/Claude.app/Contents/Frameworks/Claude Helper.app/Contents/MacOS/Claude Helper\n  1.3 27861 /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/154.0.8037.45/Helpers/Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper\n  1.2  2021 opencode\n  0.8 66993 /Applications/Claude.app/Contents/Frameworks/Claude Helper.app/Contents/MacOS/Claude Helper\n\n---- Active compiles / heavy builds / agents ----\n2021 opencode /Users/francishelene/Desktop\n2120 npm exec @playwright/mcp --headless HOME=/Users/francishelene LOGNAME=francishelene P\n2121 /Users/francishelene/.local/bin/uv tool uvx --from python-mcp-server python-mcp-serve\n2122 /Users/francishelene/.cache/uv/archive-v0/8ztgxmOCUp6PVv89/bin/python /Users/francish\n2143 node /Users/francishelene/.npm/_npx/86170c4cd1c5da32/node_modules/.bin/playwright-mcp\n2197 /Users/francishelene/.cache/uv/archive-v0/8ztgxmOCUp6PVv89/bin/python -m ipykernel_la\n67185 npm exec @modelcontextprotocol/server-pdf --stdio HOME=/Users/francishelene LOGNAME=\n====================================================\n"
+          }
+        ],
+        "status": "done"
+      },
+      "dispatchSig": "58641c1e",
+      "note": "dispatched"
+    },
+    "/Users/francishelene/toolbox/watch/(r) draft-idea": {
+      "folder": "/Users/francishelene/toolbox/watch/(r) draft-idea",
+      "firstSeen": "2026-09-18T16:36:58.510Z",
+      "name": "(r) draft-idea",
+      "state": "ready",
+      "present": true,
+      "lastSeen": "2026-09-18T16:42:07.784Z",
+      "target": null,
+      "note": "ready, but no defined launch target — not dispatched"
+    }
+  }
+}

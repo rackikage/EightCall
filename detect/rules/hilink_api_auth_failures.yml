@@ -1,0 +1,27 @@
+title: HiLink — Admin Auth Failures / Lockout
+id: b2e8d315-4c9f-4e66-ad22-1f306b7c8d12
+status: experimental
+description: >
+  Huawei HiLink admin authentication failures (108006) followed by lockout
+  (108007). The router exposes lockstatus/remainwaittime unauthenticated, so an
+  attacker can pace guesses against the exact lockout state. Detect the failure
+  burst, not the single typo.
+logsource:
+  product: hilink
+  category: application
+detection:
+  auth_fail:
+    error.code: 108006
+  lockout:
+    error.code: 108007
+  condition: auth_fail or lockout
+fields:
+  - src_ip
+  - url
+  - error.code
+falsepositives:
+  - The owner mistyping the admin password a few times.
+level: high
+tags:
+  - attack.credential-access
+  - attack.t1110

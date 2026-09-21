@@ -1,0 +1,27 @@
+# Project tooling config for detect.
+#
+# There is no build/packaging section on purpose: detect is a runnable toolkit
+# executed from the repo (see README.md / RUNBOOK.md), not a distributed
+# package. This file pins the lint + test configuration so results are
+# reproducible across machines.
+
+# target-version is the supported *floor* (the code uses 3.10+ `X | None`
+# idioms), not the interpreter in use (the venv is 3.14). Keeping it at py310
+# avoids churning stable modules with 3.11+-only rewrites; bump it to surface
+# those modernizations (UP017 datetime.UTC, FURB162 fromisoformat) deliberately.
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+# The venv lives one level up (../bin, ../lib); never lint it.
+extend-exclude = ["venv69", "../lib", "../bin"]
+
+[tool.ruff.lint]
+# Keep ruff's default selection. Intentional patterns are annotated inline with
+# `# noqa: <code>` rather than blanket-ignored here, so each exception is local
+# and reviewable.
+
+[tool.pytest.ini_options]
+# Run from the detect/ directory: `../bin/python3 -m pytest`
+testpaths = ["."]
+python_files = ["test_*.py"]
+addopts = "-q"

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>detect toolbox</title>
+<link rel="stylesheet" href="toolbox.css">
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>detect <span>toolbox</span></h1>
+    <div class="pills">
+      <span class="pill" id="pill-chain" title="gate audit hash chain">chain <b>…</b></span>
+      <span class="pill" id="pill-det" title="Sigma rules vs fixtures">detections <b>…</b></span>
+      <span class="pill" id="pill-srv" title="server liveness">server <b>…</b></span>
+    </div>
+    <div class="controls">
+      <button id="refresh" type="button">refresh</button>
+      <label>auto
+        <select id="auto">
+          <option value="0" selected>off</option>
+          <option value="5">5s</option>
+          <option value="15">15s</option>
+          <option value="60">60s</option>
+        </select>
+      </label>
+      <button id="theme" type="button" title="system / light / dark">theme</button>
+    </div>
+  </div>
+  <p class="note">Read-only view. Every route is a GET — nothing here can decide, mutate, or act on a
+  host. The gate remains the only authority, and it requires a signed request this page cannot mint.</p>
+</header>
+
+<main>
+  <section class="card" id="card-gate">
+    <div class="card-head">
+      <h2>gate</h2>
+      <div class="card-ctl">
+        <label>limit <input id="gate-limit" type="number" min="1" max="500" value="25"></label>
+      </div>
+    </div>
+    <div class="card-body" id="gate-body"><p class="loading">loading…</p></div>
+  </section>
+
+  <section class="card" id="card-det">
+    <div class="card-head">
+      <h2>detections</h2>
+      <div class="card-ctl"><button id="det-run" type="button">re-run</button></div>
+    </div>
+    <div class="card-body" id="det-body"><p class="loading">loading…</p></div>
+  </section>
+
+  <section class="card" id="card-fleet">
+    <div class="card-head"><h2>fleet</h2></div>
+    <div class="card-body" id="fleet-body"><p class="loading">loading…</p></div>
+  </section>
+
+  <section class="card wide" id="card-tail">
+    <div class="card-head">
+      <h2>tail</h2>
+      <div class="card-ctl">
+        <span id="tail-labels" class="chips"></span>
+        <label>lines <input id="tail-lines" type="number" min="1" max="1000" value="50"></label>
+      </div>
+    </div>
+    <div class="card-body" id="tail-body"><p class="loading">loading…</p></div>
+  </section>
+</main>
+
+<footer>
+  <span id="stamp">—</span> ·
+  <a href="/?format=json">routes</a> ·
+  <a href="/gate">/gate</a> ·
+  <a href="/fleet">/fleet</a> ·
+  <a href="/detections">/detections</a> ·
+  <a href="/tail">/tail</a>
+</footer>
+
+<script src="toolbox.js"></script>
+</body>
+</html>

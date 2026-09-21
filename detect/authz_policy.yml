@@ -1,0 +1,56 @@
+schema: detect.authz.policy/v1
+
+# Operator-controlled authority for the detect authorization gate.
+#
+# This file is the ONLY source of authority. The gate never infers permission
+# from detections, model output, or packet/log contents — a Sigma hit can
+# trigger a runner to build a request, but only a grant below authorizes it.
+# Deny by default: any (caller, action, target, params) not matched here is
+# denied.
+
+# Requests older than this (by their signed issued_at) are stale -> deny.
+max_request_age_seconds: 120
+# Tolerated forward clock skew on issued_at before "issued in the future".
+clock_skew_seconds: 30
+
+callers:
+  # A response runner (e.g. the future osascript / XPC executor). It proves
+  # identity by signing each request with this HMAC key. In production set
+  # key_env and keep the key with the operator, not in the repo.
+  responder-osascript:
+    key_env: DETECT_AUTHZ_KEY_RESPONDER
+    grants:
+      # osascript is arbitrary-code-capable, so it is pinned to named scripts
+      # on a single simulated host, and expires. No params key here would mean
+      # "paramless requests only" — the script param allowlist is required.
+      - action: run_osascript
+        targets:
+          - "host:test-sim-01"
+        params:
+          script: notify_soc
+        not_after: "2026-12-31T23:59:59Z"
+
+      # A coarser containment action, scoped by explicit host prefix.
+      - action: quarantine_process
+        targets:
+          - "host:test-sim-*"
+        not_before: "2026-09-01T00:00:00Z"
+        not_after: "2026-12-31T23:59:59Z"
+
+  # pt2 — a remote guest VM, identified by its Ed25519 public-key fingerprint
+  # (the "keyhash"). The gate holds only the public key; the private key stays
+  # on the guest. Generate the block below with:
+  #     ./venv69/bin/python3 authz_keygen.py responder-vm-01 --out keys/
+  # then paste the printed key_sha256 + pubkey_b64 here. `key_sha256` is the
+  # pinned identity: if pubkey_b64 is swapped without updating it, the caller
+  # is refused. One live guest asking to act on another is scoped by `targets`.
+  #
+  # responder-vm-01:
+  #   alg: ed25519
+  #   key_sha256: <fingerprint hex from keygen>
+  #   pubkey_b64: <public key from keygen>
+  #   grants:
+  #     - action: quarantine_process
+  #       targets:
+  #         - "host:test-sim-*"
+  #       not_after: "2026-12-31T23:59:59Z"

@@ -1,0 +1,36 @@
+name: tor-gateway   # same project name keeps the existing onion key volume
+services:
+  net:
+    # owns the shared network namespace (like a Kubernetes pause container), so
+    # restarting gateway or backend never strands the other
+    image: registry.k8s.io/pause:3.10
+    container_name: tor-gateway-net
+    ports:
+      - "127.0.0.1:8088:80"    # VM loopback only; reach from Mac via ops/install-forward-agent.sh / ops/forward.sh
+      - "127.0.0.1:2222:22"    # ssh, key-only
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 1
+    networks: [default, kind]
+    restart: unless-stopped
+  gateway:
+    build: .
+    image: tor-gateway:latest
+    container_name: tor-gateway
+    network_mode: "service:net"
+    volumes:
+      - tor-hs:/var/lib/tor
+    depends_on: [net]
+    restart: unless-stopped
+  backend:
+    # placeholder app on loopback 127.0.0.1:8080
+    image: busybox:1.36
+    container_name: tor-gateway-backend
+    network_mode: "service:net"
+    command: ["sh","-c","mkdir -p /www && echo 'backend ok' > /www/index.html && httpd -f -p 127.0.0.1:8080 -h /www"]
+    depends_on: [net]
+    restart: unless-stopped
+networks:
+  kind:
+    external: true   # created by kind; gateway reaches py-box-control-plane:30090 privately
+volumes:
+  tor-hs:

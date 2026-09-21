@@ -1,0 +1,34 @@
+title: ICMP Echo Request Carrying Large or Base64-Encoded Payload
+id: 62eb73a1-09ec-46d3-8146-ac59fb28c637
+status: experimental
+description: >
+  Detects ICMP echo requests whose payload is unusually large or matches
+  a base64 blob, consistent with exfiltration or tunnelling over an
+  alternate protocol (T1048.003). Benign ping uses a small counter-pattern
+  payload, so payload shape separates the two fixtures.
+references:
+  - https://attack.mitre.org/techniques/T1048/003/
+tags:
+  - attack.exfiltration
+  - attack.t1048.003
+logsource:
+  category: network_traffic
+  product: pcap
+  description: >
+    Requires a payload-bearing packet source (raw pcap/tcpdump capture,
+    or a Zeek plugin/log stream that exports raw ICMP payload bytes).
+    Zeek's default conn.log has no payload field, so this rule will not
+    fire against stock conn.log alone.
+detection:
+  icmp_echo_request:
+    proto: icmp
+    icmp_type: 8
+  large_payload:
+    icmp_payload_len|gte: 200
+  base64_blob:
+    icmp_payload|re: '^[A-Za-z0-9+/]{64,}={0,2}$'
+  condition: icmp_echo_request and (large_payload or base64_blob)
+falsepositives:
+  - Large but legitimate ping sweeps or MTU-discovery probes.
+  - Monitoring tooling that pads ICMP payloads.
+level: medium

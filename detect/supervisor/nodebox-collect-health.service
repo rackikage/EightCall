@@ -1,0 +1,21 @@
+[Unit]
+Description=nodebox collect-health (reviewed, inventory-bound task)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=nodebox
+Group=nodebox
+# The ONLY thing this unit may run is the reviewed task definition. The broker
+# rejects arbitrary commands; the unit cannot be repurposed into a shell.
+# Target the sshd-enabled gateway (see inventory.json / sshgate_policy.yml). The
+# router (b628) has no sshd and is marked sshd:false, so the broker refuses it.
+ExecStart=/usr/bin/nodebox ssh task --inventory /etc/nodebox/inventory.json \
+    --node gateway --task collect-health
+TimeoutStartSec=45
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+CapabilityBoundingSet=

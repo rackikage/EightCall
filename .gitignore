@@ -1,4 +1,35 @@
+# environments / caches
 .venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+node_modules/
+target/
+dist/
+
+# runtime state and evidence (workspace policy: not source)
+detect/*.jsonl
+detect/*.log
+detect/authz_nonces.log
+detect/nodebox_demo_state/
+detect/evidence/
+plasma/pods/pods.log
+plasma/pods/runs.jsonl
+plasma/pods/locks/
+plasma/pods/pids/
+plasma/pods/state/
+toolbox/runs/
+toolbox/server.log
+toolbox/*.bak-*
+
+# keys and secrets — never commit
+authorized_keys
+*.key
+*.pem
+id_rsa*
+id_ed25519*
+
+# macOS
 .DS_Store

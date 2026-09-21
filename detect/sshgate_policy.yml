@@ -1,0 +1,64 @@
+schema: nodebox.sshgate/v1
+default: deny
+
+# The gate IS the SSH acceptance decision. My side holds the private key; this
+# policy declares what the other side (gate host / cluster) accepts that key
+# FOR. Deny by default: a key that merely exists is authorized for nothing.
+
+gate:
+  id: gate-01
+  host: mac
+  sshd_user: gw            # matches tor-gateway sshd_config AllowUsers gw
+  sshd_ports: [22, 4444, 2222]   # ONLY these ports may ever be used
+  allow_root_login: false        # no root shells unless a grant says allow_root: true
+
+# Only hosts where sshd is actually enabled AND enrolled may be grant targets.
+# The gate will not authorize an action against a host that does not run sshd.
+hosts:
+  fleet-node: { sshd: true,  user: gw, via: "127.0.0.1:2222", sshd_ports: [2222], root_login: false }
+  tor-gateway: { sshd: true,  user: gw, via: "127.0.0.1:2222", sshd_ports: [2222], root_login: false }
+  b628:        { sshd: false, note: "router: port 22 filtered; enable sshd or use the HTTP API" }
+  mac:         { sshd: false, note: "Remote Login off; enable to gate it" }
+
+principals:
+  - name: operator
+    comment: rackikage@kitty
+    key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPK90TbqZLiO4Egmci9oBJT2ARN/w4M22AuXjKPpPT2G rackikage@kitty"
+    fingerprint: "SHA256:BhB8DBI/Wc2by/jq4Kh7DDBCr3mmfpfUQBWe0o1W2us"
+    grants:
+      # cluster forwarding: only these loopback destinations, only from the LAN.
+      # separate sshd user per action class so ForceCommand and PermitOpen never
+      # collide on one account.
+      - action: forward
+        sshd_user: gw-fwd
+        targets: ["fleet-node"]
+        permitopen: ["127.0.0.1:8088", "127.0.0.1:30090"]
+        source_cidrs: ["192.168.8.0/24"]
+        not_after: "2026-12-31T23:59:59Z"
+
+      - action: forward
+        sshd_user: gw-fwd
+        targets: ["tor-gateway"]
+        permitopen: ["127.0.0.1:80", "127.0.0.1:8080"]
+        source_cidrs: ["192.168.8.0/24"]
+        not_after: "2026-12-31T23:59:59Z"
+
+      # fixed, reviewed task on an sshd-enabled host: no shell, no arbitrary command.
+      # NOTE: the router (b628) has NO sshd, so it is NOT a valid SSH target -- its
+      # health is collected via the read-only HTTP API (tools/b628), not sshd.
+      - action: task
+        sshd_user: gw-task
+        targets: ["fleet-node"]
+        port: 2222
+        forcecommand: "/usr/local/bin/nodebox ssh task --inventory /etc/nodebox/inventory.json --node gateway --task collect-health"
+        source_cidrs: ["192.168.8.0/24"]
+        not_after: "2026-12-31T23:59:59Z"
+
+      # interactive shell to the cluster gateway only (no forwards)
+      - action: shell
+        sshd_user: gw-shell
+        targets: ["fleet-node"]
+        port: 2222
+        allow_root: false
+        source_cidrs: ["192.168.8.0/24"]
+        not_after: "2026-12-31T23:59:59Z"

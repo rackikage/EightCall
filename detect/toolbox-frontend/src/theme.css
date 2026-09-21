@@ -1,0 +1,170 @@
+/* detect toolbox — AMOLED / reverse-neon-pink / skylight-laser theme.
+ *
+ * Performance contract ("blazing quick"):
+ *   - Zero DOM nodes and zero JS for the whole atmosphere. It is two fixed
+ *     pseudo-elements on <body>, painted once and then composited.
+ *   - Stars are a single inline-SVG data URI (vector → crisp at any DPI,
+ *     "hyper HD") rather than hundreds of elements or radial-gradient stacks.
+ *   - Only opacity and transform are ever animated, so nothing relayouts or
+ *     repaints — these stay on the compositor.
+ *   - Both layers are pointer-events:none and sit behind everything.
+ *   - All motion is off under prefers-reduced-motion.
+ *
+ * Restraint is the point: every opacity here is in the 0.02–0.10 range. On a
+ * true-black AMOLED panel that reads as depth, not decoration.
+ */
+
+:root {
+  /* AMOLED: genuine pixel-off black, not a dark grey. */
+  --bg: #000000;
+  --bg-raised: #060608;
+
+  /* Reverse neon pink: the glow does the work, the ink stays near-white.
+     Pink is the accent that things bloom *into*, not a wall of pink text. */
+  --accent: #ff2d95;
+  --accent-soft: #ff7ac0;
+  --accent-glow: rgba(255, 45, 149, 0.55);
+
+  /* Cartoon / hyper-HD star blue. */
+  --star: #9fd8ff;
+  --star-bright: #d6efff;
+
+  --ink: #f2f3f5;
+  --ink-dim: #8b8f98;
+  --ink-faint: #4a4e57;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 45, 149, 0.22);
+  --focus: var(--accent-soft);
+}
+
+/* The atmosphere only exists in dark/AMOLED mode. Light mode stays clean. */
+:root[data-theme="light"] {
+  --accent: #c81e73;
+  --accent-soft: #e0489a;
+  --accent-glow: rgba(200, 30, 115, 0.25);
+  --line-strong: rgba(200, 30, 115, 0.28);
+}
+
+body {
+  background-color: var(--bg);
+  position: relative;
+}
+
+/* ---- layer 1: skylight laser ------------------------------------------
+   A shaft of light angled in from above, the way a skylight throws one
+   across a dark room — plus a faint pink bloom at the aperture. Blurred
+   and near-invisible on purpose. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20% -10% 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    /* the aperture bloom */
+    radial-gradient(
+      60% 38% at 50% -8%,
+      rgba(255, 45, 149, 0.1) 0%,
+      rgba(255, 45, 149, 0.045) 38%,
+      transparent 72%
+    ),
+    /* primary shaft */
+    linear-gradient(
+      101deg,
+      transparent 37%,
+      rgba(255, 45, 149, 0.032) 39.4%,
+      rgba(255, 122, 192, 0.072) 40.6%,
+      rgba(255, 45, 149, 0.03) 42.2%,
+      transparent 45%
+    ),
+    /* secondary, cooler shaft so it is not monochrome */
+    linear-gradient(
+      96deg,
+      transparent 59%,
+      rgba(159, 216, 255, 0.038) 61%,
+      rgba(214, 239, 255, 0.055) 61.8%,
+      transparent 64%
+    );
+  filter: blur(6px);
+  animation: skylight-drift 42s ease-in-out infinite alternate;
+}
+
+@keyframes skylight-drift {
+  from {
+    transform: translate3d(-1.2%, 0, 0) scaleY(1);
+    opacity: 0.85;
+  }
+  to {
+    transform: translate3d(1.2%, 0, 0) scaleY(1.04);
+    opacity: 1;
+  }
+}
+
+/* ---- layer 2: star field ----------------------------------------------
+   One SVG, vector, fixed-attachment. Round dots for the far field and a
+   handful of 4-point cartoon sparkles for character. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900'%3E%3Cg fill='%239fd8ff'%3E%3Ccircle cx='118' cy='96' r='1.1' opacity='.6'/%3E%3Ccircle cx='372' cy='58' r='.9' opacity='.45'/%3E%3Ccircle cx='642' cy='132' r='1.2' opacity='.55'/%3E%3Ccircle cx='905' cy='72' r='.85' opacity='.4'/%3E%3Ccircle cx='1188' cy='148' r='1.05' opacity='.5'/%3E%3Ccircle cx='1358' cy='64' r='.9' opacity='.42'/%3E%3Ccircle cx='212' cy='286' r='1' opacity='.5'/%3E%3Ccircle cx='508' cy='332' r='.8' opacity='.38'/%3E%3Ccircle cx='788' cy='262' r='1.15' opacity='.52'/%3E%3Ccircle cx='1062' cy='352' r='.9' opacity='.44'/%3E%3Ccircle cx='1302' cy='300' r='1' opacity='.48'/%3E%3Ccircle cx='86' cy='470' r='.95' opacity='.46'/%3E%3Ccircle cx='348' cy='548' r='1.1' opacity='.5'/%3E%3Ccircle cx='598' cy='492' r='.82' opacity='.36'/%3E%3Ccircle cx='872' cy='566' r='1.05' opacity='.5'/%3E%3Ccircle cx='1152' cy='512' r='.88' opacity='.42'/%3E%3Ccircle cx='1396' cy='596' r='1' opacity='.46'/%3E%3Ccircle cx='166' cy='712' r='1.1' opacity='.48'/%3E%3Ccircle cx='452' cy='788' r='.85' opacity='.38'/%3E%3Ccircle cx='736' cy='726' r='1' opacity='.46'/%3E%3Ccircle cx='1008' cy='822' r='.92' opacity='.4'/%3E%3Ccircle cx='1284' cy='756' r='1.08' opacity='.5'/%3E%3C/g%3E%3Cg fill='%23d6efff'%3E%3Cpath d='M300 176 l2.4 8 8 2.4 -8 2.4 -2.4 8 -2.4 -8 -8 -2.4 8 -2.4 z' opacity='.55'/%3E%3Cpath d='M1052 118 l1.9 6.4 6.4 1.9 -6.4 1.9 -1.9 6.4 -1.9 -6.4 -6.4 -1.9 6.4 -1.9 z' opacity='.45'/%3E%3Cpath d='M676 622 l2.1 7 7 2.1 -7 2.1 -2.1 7 -2.1 -7 -7 -2.1 7 -2.1 z' opacity='.5'/%3E%3Cpath d='M242 612 l1.6 5.4 5.4 1.6 -5.4 1.6 -1.6 5.4 -1.6 -5.4 -5.4 -1.6 5.4 -1.6 z' opacity='.4'/%3E%3Cpath d='M1332 424 l2.2 7.4 7.4 2.2 -7.4 2.2 -2.2 7.4 -2.2 -7.4 -7.4 -2.2 7.4 -2.2 z' opacity='.48'/%3E%3Cpath d='M486 268 l1.7 5.8 5.8 1.7 -5.8 1.7 -1.7 5.8 -1.7 -5.8 -5.8 -1.7 5.8 -1.7 z' opacity='.42'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: cover;
+  background-position: center;
+  animation: star-breathe 9s ease-in-out infinite alternate;
+}
+
+@keyframes star-breathe {
+  from { opacity: 0.38; }
+  to { opacity: 0.58; }
+}
+
+:root[data-theme="light"] body::before,
+:root[data-theme="light"] body::after {
+  display: none;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) body::before,
+  :root:not([data-theme="dark"]) body::after {
+    display: none;
+  }
+}
+
+/* ---- accent application — restrained, glow-led --------------------- */
+
+.mark { text-shadow: 0 0 18px var(--accent-glow); }
+
+button.primary {
+  color: var(--accent-soft);
+  border-color: rgba(255, 45, 149, 0.34);
+}
+button.primary:hover:not(:disabled) {
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 14px rgba(255, 45, 149, 0.18);
+  background: rgba(255, 45, 149, 0.06);
+}
+
+.chip[aria-pressed="true"] {
+  color: var(--accent-soft);
+  border-color: rgba(255, 45, 149, 0.4);
+  box-shadow: 0 0 10px rgba(255, 45, 149, 0.12);
+}
+
+.status-row .ok .dot { box-shadow: 0 0 8px rgba(89, 214, 154, 0.5); }
+.status-row .bad .dot { box-shadow: 0 0 8px rgba(255, 107, 107, 0.5); }
+
+/* Panels sit on the atmosphere rather than boxing it out. */
+section.panel { border-top-color: var(--line); background: transparent; }
+
+::selection { background: rgba(255, 45, 149, 0.28); }
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after {
+    animation: none;
+  }
+}

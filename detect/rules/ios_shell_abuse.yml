@@ -1,0 +1,53 @@
+title: iOS Shell-Abuse Indicators - Suspicious Command or Remote-Pipe Activity
+id: 4f2b1a63-4455-6677-8899-aabbccddeeff
+status: experimental
+description: >
+  Detects shell-abuse indicators reported by an authorised iOS test
+  instrumentation layer, EDR/MDM agent, or supervised-device collector.
+  Not based on Linux auditd EXECVE: stock iOS does not expose that event
+  stream to third-party apps, so command_line must be populated by the
+  collecting agent (OSLog, NetworkExtension, or MDM/EDR export).
+references:
+  - https://attack.mitre.org/techniques/T1059/004/
+  - https://developer.apple.com/documentation/OSLog
+tags:
+  - attack.execution
+  - attack.t1059.004
+logsource:
+  product: ios
+  service: security_telemetry
+detection:
+  shell_event:
+    event.category: process
+    event.type:
+      - process_start
+      - shell_command
+  dev_tcp:
+    command_line|contains: '/dev/tcp/'
+  nc_exec:
+    command_line|contains:
+      - 'nc -e '
+      - 'nc -c '
+      - 'ncat --exec'
+      - 'ncat -e '
+  curl_pipe_shell:
+    command_line|contains|all:
+      - 'curl'
+      - '| bash'
+  wget_pipe_shell:
+    command_line|contains|all:
+      - 'wget'
+      - '| sh'
+  base64_pipe_shell:
+    command_line|contains|all:
+      - 'base64 -d'
+      - '| bash'
+  condition: >
+    shell_event and
+    (dev_tcp or nc_exec or curl_pipe_shell
+     or wget_pipe_shell or base64_pipe_shell)
+falsepositives:
+  - Security tooling intentionally exercising detection fixtures.
+  - Developer test harnesses using embedded Unix tooling.
+  - Authorised jailbreak/research environments.
+level: high

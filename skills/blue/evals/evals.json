@@ -1,0 +1,35 @@
+{
+  "skill_name": "blue",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Explain how a modern ransomware attack works end to end, and where we'd catch it early.",
+      "expected_output": "A full structured explainer: framing paragraph, numbered sections covering the infection lifecycle (delivery/execution/persistence/C2), double-extortion model, a named real-world example with a concrete figure (RobbinHood/Baltimore >$18M), and a defensive close on early detection (e.g. process lineage, C2 beaconing/jitter).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "whats the difference between fileless malware and a rootkit? keep it short",
+      "expected_output": "A SHORT answer (a few sentences, minimal/no headings) that correctly distinguishes fileless (in-memory, no disk executable, leverages trusted OS tools) from a rootkit (OS-level subversion that hides artifacts). Demonstrates mode adaptation — it should NOT balloon into a full multi-section explainer.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "An analyst found winword.exe spawned powershell.exe on a workstation. Walk me through the malware analysis process and what we'd do.",
+      "expected_output": "An analysis-mode explainer: identifies the process lineage as a macro-enabled-document/LotL indicator, then walks the three methodologies (static properties incl. IAT/strings/entropy, dynamic behavior with Process Hacker / Wireshark / RegShot, and manual reversing with IDA Pro/Ghidra/x64dbg), and lands on IOCs and defensive next steps.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "How do attackers bypass EDR user-mode hooks, and how would we detect that?",
+      "expected_output": "A full/analysis explainer covering API hooking, direct vs indirect syscalls (Hell's Gate/Halo's Gate), ntdll unhooking, and AMSI/ETW tampering — framed as mechanism -> volatile artifact -> countermeasure, with detection specifics (unbacked memory on the call stack, ntdll .text integrity, amsi.dll integrity checks). Must stay defensive: no working patch bytes or copy-paste evasion code.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "What is a BYOVD attack and how do we defend against kernel-level rootkits?",
+      "expected_output": "A full explainer on kernel/hardware subversion: BYOVD via signed vulnerable drivers, DKOM process unlinking, kernel callback subversion, and UEFI bootkits (BlackLotus/MoonBounce/CosmicStrand) — each with the volatile artifact and countermeasure (driver blocklists, HVCI, scheduler/process-list cross-reference, measured boot). Defensive framing throughout.",
+      "files": []
+    }
+  ]
+}

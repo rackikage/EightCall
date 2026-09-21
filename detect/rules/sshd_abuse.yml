@@ -1,0 +1,55 @@
+title: OpenSSH Server Abuse - Tunneling, Root Login, and Auth Bursts
+id: 7b3e2a1c-9d84-4f52-b6a1-2c5e8f0a4d31
+status: experimental
+description: >
+  Detects abuse of an OpenSSH server (sshd): remote/local port-forwarding
+  channels used as a pivot or C2 tunnel (T1572), unexpected root logins, and
+  invalid-user / failed-auth bursts. Tuned for a hardened relay account (e.g.
+  AllowUsers + AllowTcpForwarding + PermitOpen, as in the detect tor-gateway)
+  where forwarding activity — not shell commands — is the signal.
+
+  NOTE: the forwarding_channel lines require sshd `LogLevel VERBOSE`. Brute-
+  force *volume* should be expressed as a Sigma correlation rule over the
+  auth_failure selection; this rule flags the individual indicators.
+references:
+  - https://attack.mitre.org/techniques/T1572/          # Protocol Tunneling
+  - https://attack.mitre.org/techniques/T1021/004/        # Remote Services: SSH
+  - https://attack.mitre.org/techniques/T1098/004/        # SSH Authorized Keys
+author: detect
+date: 2026-09-17
+tags:
+  - attack.command-and-control
+  - attack.t1572
+  - attack.lateral-movement
+  - attack.t1021.004
+  - attack.persistence
+logsource:
+  product: linux
+  service: sshd
+detection:
+  # -L (direct-tcpip) / -R (forwarded-tcpip) channel setup — the tunnel/pivot
+  # signal. Logged by sshd at LogLevel VERBOSE.
+  forwarding_channel:
+    - 'direct-tcpip'
+    - 'forwarded-tcpip'
+    - 'server_request_direct_tcpip'
+  # a remote (-R) listener being bound on the server side
+  remote_forward_listen:
+    - 'remote forward'
+    - 'bind port'
+  # login as root despite a `PermitRootLogin no` policy
+  root_login:
+    - 'Accepted password for root'
+    - 'Accepted publickey for root'
+  # invalid-user / failed-auth indicators (aggregate for volume via correlation)
+  auth_failure:
+    - 'Failed password for invalid user'
+    - 'Invalid user'
+    - 'Disconnecting: Too many authentication failures'
+    - 'maximum authentication attempts exceeded'
+  condition: forwarding_channel or remote_forward_listen or root_login or auth_failure
+falsepositives:
+  - Legitimate admin SSH tunnels (e.g. -L to a database) — scope by account/host.
+  - Backup or monitoring jobs that use port forwarding.
+  - Vulnerability scanners generating invalid-user noise.
+level: high

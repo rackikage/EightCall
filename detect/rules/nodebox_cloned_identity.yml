@@ -1,0 +1,19 @@
+title: Nodebox — Cloned Node Identity
+id: 8d3c4e52-1f66-4e33-ab23-4d906c1e3f32
+status: experimental
+description: >
+  The same node_id presented from a different boot_id or machine binding while
+  another session for that identity was live. The disk (and therefore the
+  private key) was cloned; the image was not given a fresh first-boot identity.
+  Same image != same node; this is a trust clone.
+logsource:
+  product: nodebox
+  category: application
+detection:
+  sel:
+    event_type: nodebox.clone
+  condition: sel
+level: high
+tags:
+  - attack.defense-evasion
+  - attack.t1078

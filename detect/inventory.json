@@ -1,0 +1,31 @@
+{
+  "revision": "sample-inventory-v1",
+  "telemetry_path": "nodebox_telemetry.jsonl",
+  "nodes": {
+    "gateway": {
+      "alias": "gateway",
+      "device_type": "linux-gateway",
+      "address": "127.0.0.1",
+      "port": 2222,
+      "user": "gw",
+      "sshd": true,
+      "host_key_alias": "fleet-node",
+      "allowed_capabilities": ["PING"],
+      "tasks": {
+        "collect-health": {
+          "remote_command": ["/usr/local/lib/nodebox/collect-health", "--json"],
+          "timeout_seconds": 30,
+          "tty": false,
+          "allowed_exit_codes": [0]
+        }
+      }
+    },
+    "b628": {
+      "alias": "router",
+      "device_type": "router",
+      "address": "192.168.8.1",
+      "sshd": false,
+      "note": "Huawei B628 router: port 22 is filtered. Health is collected via the read-only HiLink HTTP API (see rules/hilink_api_*.yml), never the SSH admin plane."
+    }
+  }
+}

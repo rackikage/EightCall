@@ -1,0 +1,3 @@
+# Nmap 7.99 scan initiated Fri Sep 18 15:16:25 2026 as: nmap -Pn -sT -sV --version-light --open -p- -oA hunt/iphone01 192.168.8.120
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Fri Sep 18 15:17:10 2026 -- 1 IP address (1 host up) scanned in 45.13 seconds

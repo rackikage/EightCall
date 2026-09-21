@@ -1,0 +1,62 @@
+title: Beaconing C2 Through a Redirector / Relay Tier
+id: b2c7d4e9-1f83-4a56-9c02-7e5a1d3b8f40
+status: experimental
+description: >
+  Detects the network signature of an implant beaconing to command-and-control
+  through a redirector/relay tier (T1071, T1090, T1573): a regular, low-jitter
+  callback that egresses via a known redirector hop and/or carries a domain-
+  fronting mismatch (TLS SNI != HTTP Host).
+
+  Regularity on its own is not enough — a legitimate update poller beacons too —
+  so the rule keys on regularity COMBINED with a relay or fronting indicator.
+  That combination is what separates a redirector-fronted C2 channel from a
+  direct, aligned poll, and it is the observable shape of a multi-hop relay
+  cluster seen from the wire (no host agent, no kernel vantage required).
+
+  Fields are analytic: a flow/beacon analyzer (Zeek conn/ssl/http joined with a
+  RITA-style beacon scorer, or a forward-proxy log enricher) must populate
+  beacon.interval_s / beacon.jitter_pct, tls.front (aligned|mismatch, computed
+  from SNI vs Host), and dst.relay_tier (hop count through untrusted
+  redirectors). A stock conn.log without that enrichment will not fire.
+references:
+  - https://attack.mitre.org/techniques/T1071/          # Application Layer Protocol
+  - https://attack.mitre.org/techniques/T1090/          # Proxy (redirectors)
+  - https://attack.mitre.org/techniques/T1090/004/        # Domain Fronting
+  - https://attack.mitre.org/techniques/T1573/          # Encrypted Channel
+author: detect
+date: 2026-09-18
+tags:
+  - attack.command-and-control
+  - attack.t1071
+  - attack.t1090
+  - attack.t1090.004
+  - attack.t1573
+logsource:
+  category: network_traffic
+  definition: >
+    Enriched flow records — Zeek conn/ssl/http joined plus a beacon scorer, or a
+    forward-proxy log carrying the same enrichment. NOT stock conn.log: the
+    analytic fields below (beacon.*, tls.front, dst.relay_tier) are populated by
+    the beacon-analyzer / proxy-enrichment layer, so a raw conn.log without that
+    enrichment will not fire.
+detection:
+  # a regular, low-jitter callback: the timing shape of an automated beacon
+  beacon_regular:
+    beacon.jitter_pct|lte: 15
+    beacon.interval_s|gte: 1
+  # TLS SNI does not match the HTTP Host header — domain fronting (T1090.004)
+  fronting_mismatch:
+    tls.front: mismatch
+  # the flow egresses through one or more untrusted redirector hops
+  relay_egress:
+    dst.relay_tier|gte: 1
+  condition: beacon_regular and (fronting_mismatch or relay_egress)
+falsepositives:
+  - Fixed-interval app / update pollers with DIRECT egress and aligned SNI/Host
+    (no relay hop, tls.front=aligned) — not flagged; the rule also needs the
+    relay or fronting indicator, so a plain regular poll does not alert.
+  - Health-check or monitoring beacons routed through a SANCTIONED corporate
+    egress proxy — scope dst.relay_tier to untrusted redirectors, not the
+    organisation's own proxy.
+  - CDN traffic where SNI and Host legitimately match (tls.front=aligned).
+level: high

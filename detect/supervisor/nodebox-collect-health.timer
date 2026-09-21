@@ -1,0 +1,11 @@
+[Unit]
+Description=Run nodebox collect-health on a schedule
+
+[Timer]
+# Named, visible, attributable schedule -- deliberately NOT a hidden cron entry.
+OnCalendar=*-*-* 06:00:00
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

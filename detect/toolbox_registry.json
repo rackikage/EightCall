@@ -1,0 +1,881 @@
+{
+  "version": 1,
+  "schema": "detect.toolbox.registry/v1",
+  "note": "Operator-authored policy file. Same trust class as authz_policy.yml, sshgate_policy.yml, log_allowlist.yml. Loaded once at boot by toolbox-rs --registry, lint-checked before the listener binds, served verbatim at GET /api/registry with its sha256. Adding a command is adding one object here plus a restart: no Rust rebuild, no TypeScript edit. INVARIANT: every argv element is a literal written in this file, the server's own --python path, a server-generated token, or a member of an option set the server itself enumerated. No request byte is ever concatenated into an argv element and no shell is ever involved.",
+  "capabilities": [
+    {
+      "id": "view.gate",
+      "label": "Gate decisions + chain verify",
+      "group": "hunt",
+      "summary": "Every authorization decision the gate wrote, with a fresh hash-chain verification over the whole file.",
+      "mutating": false,
+      "runner": "read_view",
+      "http": {
+        "path": "/gate",
+        "query": [
+          {
+            "arg": "limit",
+            "param": "limit"
+          }
+        ]
+      },
+      "args": [
+        {
+          "name": "limit",
+          "label": "window",
+          "kind": "int",
+          "required": false,
+          "default": 25,
+          "min": 1,
+          "max": 500
+        }
+      ],
+      "output": {
+        "kind": "table",
+        "facts": [
+          {
+            "label": "chain",
+            "path": "/chain/ok",
+            "as": "tag"
+          },
+          {
+            "label": "records",
+            "path": "/chain/records"
+          },
+          {
+            "label": "first bad seq",
+            "path": "/chain/first_bad_seq"
+          },
+          {
+            "label": "allow",
+            "path": "/window/allow"
+          },
+          {
+            "label": "deny",
+            "path": "/window/deny"
+          }
+        ],
+        "rows": "/decisions",
+        "columns": [
+          {
+            "label": "decision",
+            "path": "/decision",
+            "as": "tag"
+          },
+          {
+            "label": "seq",
+            "path": "/seq"
+          },
+          {
+            "label": "ts",
+            "path": "/ts"
+          },
+          {
+            "label": "caller",
+            "path": "/caller"
+          },
+          {
+            "label": "action",
+            "path": "/action"
+          },
+          {
+            "label": "target",
+            "path": "/target"
+          },
+          {
+            "label": "reason",
+            "path": "/reason"
+          }
+        ],
+        "reverse": true,
+        "empty": "no decisions recorded"
+      },
+      "dashboard": {
+        "panel": "gate",
+        "order": 1,
+        "refresh_seconds": 0
+      },
+      "docs": {
+        "notes": "The chain is recomputed over the entire audit file; only the returned window is bounded. 'tamper-evident, not tamper-proof'. Leaving limit blank omits the query parameter entirely and lets toolbox_http.py apply its own default of 50."
+      }
+    },
+    {
+      "id": "view.fleet",
+      "label": "Fleet inventory + telemetry",
+      "group": "fleet",
+      "summary": "Operator inventory, this supervisor's own layer stack, and what the collector has actually seen.",
+      "mutating": false,
+      "runner": "read_view",
+      "http": {
+        "path": "/fleet",
+        "query": []
+      },
+      "args": [],
+      "output": {
+        "kind": "table",
+        "facts": [
+          {
+            "label": "inventory",
+            "path": "/inventory/path"
+          },
+          {
+            "label": "revision",
+            "path": "/inventory/revision"
+          },
+          {
+            "label": "telemetry records",
+            "path": "/telemetry/records"
+          },
+          {
+            "label": "malformed",
+            "path": "/telemetry/malformed"
+          },
+          {
+            "label": "latest ts",
+            "path": "/telemetry/latest_ts"
+          }
+        ],
+        "rows": "/inventory/nodes",
+        "columns": [
+          {
+            "label": "node",
+            "path": "/node_id"
+          },
+          {
+            "label": "alias",
+            "path": "/alias"
+          },
+          {
+            "label": "type",
+            "path": "/device_type"
+          },
+          {
+            "label": "address",
+            "path": "/address"
+          },
+          {
+            "label": "port",
+            "path": "/port"
+          },
+          {
+            "label": "sshd",
+            "path": "/sshd",
+            "as": "tag"
+          },
+          {
+            "label": "host key",
+            "path": "/host_key_alias"
+          },
+          {
+            "label": "caps",
+            "path": "/allowed_capabilities"
+          },
+          {
+            "label": "tasks",
+            "path": "/tasks"
+          },
+          {
+            "label": "note",
+            "path": "/note"
+          }
+        ],
+        "empty": "inventory has no nodes"
+      },
+      "dashboard": {
+        "panel": "fleet",
+        "order": 2,
+        "refresh_seconds": 0
+      },
+      "docs": {
+        "notes": "This is the option source for every node/task dropdown in the registry. Each sub-view is wrapped by _guard() server-side, so a broken piece surfaces as {\"error\": ...} inside the payload instead of failing the whole read."
+      }
+    },
+    {
+      "id": "view.detections",
+      "label": "Detections - rules vs fixtures",
+      "group": "hunt",
+      "summary": "Every fixed rule/fixture pair evaluated in-process, plus rules that ship with no fixture to prove them.",
+      "mutating": false,
+      "runner": "read_view",
+      "http": {
+        "path": "/detections",
+        "query": []
+      },
+      "args": [],
+      "output": {
+        "kind": "pass-fail",
+        "verdict": "/result",
+        "facts": [
+          {
+            "label": "rules",
+            "path": "/coverage/rules"
+          },
+          {
+            "label": "uncovered",
+            "path": "/coverage/without_fixtures"
+          }
+        ],
+        "rows": "/checks",
+        "columns": [
+          {
+            "label": "ok",
+            "path": "/ok",
+            "as": "tag"
+          },
+          {
+            "label": "rule",
+            "path": "/rule"
+          },
+          {
+            "label": "fixture",
+            "path": "/fixture"
+          },
+          {
+            "label": "expect",
+            "path": "/expect"
+          },
+          {
+            "label": "level",
+            "path": "/level"
+          },
+          {
+            "label": "events",
+            "path": "/events"
+          },
+          {
+            "label": "hits",
+            "path": "/hits"
+          },
+          {
+            "label": "error",
+            "path": "/error"
+          }
+        ],
+        "empty": "no checks registered"
+      },
+      "dashboard": {
+        "panel": "detections",
+        "order": 3,
+        "refresh_seconds": 0
+      },
+      "docs": {
+        "notes": "Runs in-process inside toolbox_http.py against repo fixtures; the rule/fixture pairs are fixed in _CHECKS and no request input reaches the evaluator. No subprocess is spawned by this request - that is a documented invariant, which is why this is a read_view row and not an exec row."
+      }
+    },
+    {
+      "id": "view.tail",
+      "label": "Live tail - allowlisted labels",
+      "group": "hunt",
+      "summary": "Bounded, redacted log snapshot. A label is the only thing a caller may name; paths come from the operator allowlist.",
+      "mutating": false,
+      "runner": "read_view",
+      "http": {
+        "path": "/tail",
+        "query": [
+          {
+            "arg": "label",
+            "param": "label",
+            "repeat": true
+          },
+          {
+            "arg": "lines",
+            "param": "lines"
+          }
+        ]
+      },
+      "args": [
+        {
+          "name": "label",
+          "label": "source label",
+          "kind": "multi-enum",
+          "required": false,
+          "default": [],
+          "source": {
+            "from": "view",
+            "capability": "view.tail",
+            "args": {},
+            "items": "/labels",
+            "value": "",
+            "label": ""
+          }
+        },
+        {
+          "name": "lines",
+          "label": "lines",
+          "kind": "int",
+          "required": false,
+          "default": 100,
+          "min": 1,
+          "max": 1000
+        }
+      ],
+      "output": {
+        "kind": "table",
+        "facts": [
+          {
+            "label": "labels",
+            "path": "/labels"
+          },
+          {
+            "label": "returned",
+            "path": "/returned"
+          }
+        ],
+        "rows": "/records",
+        "columns": [
+          {
+            "label": "ts",
+            "path": "/ts"
+          },
+          {
+            "label": "source",
+            "path": "/source"
+          },
+          {
+            "label": "trace",
+            "path": "/trace_id"
+          },
+          {
+            "label": "findings",
+            "path": "/findings"
+          },
+          {
+            "label": "line",
+            "path": "/line",
+            "as": "code"
+          }
+        ],
+        "empty": "pick a label"
+      },
+      "dashboard": {
+        "panel": "logs",
+        "order": 4,
+        "refresh_seconds": 0
+      },
+      "docs": {
+        "notes": "Labels resolve through log_allowlist.yml inside livetail.py. A path can never be named here: this arg is an enum whose option set IS the allowlist, so an unknown label is refused at the Rust edge (400 not-a-member) and independently again by tail_view (403). The self-reference is non-recursive - view.tail with no label returns {labels: [...]} by design. This also removes today's '?label=a,b' divergence between the Rust and Python front doors: a comma string is not a member of the set."
+      }
+    },
+    {
+      "id": "nodebox.stack",
+      "label": "Trust stack + attestation scope",
+      "group": "fleet",
+      "summary": "What each layer of the stack can honestly attest to, and what it cannot.",
+      "mutating": false,
+      "runner": "exec",
+      "timeout_ms": 30000,
+      "argv": [
+        "{python}",
+        "nodebox_cli.py",
+        "stack"
+      ],
+      "args": [],
+      "output": {
+        "kind": "json-stream"
+      },
+      "docs": {
+        "notes": "cmd_stack prints a JSON array, a literal separator line, then a second JSON object. The json-stream renderer consumes successive JSON values and turns any non-JSON line into {\"text\": ...}, so this needs no per-command code."
+      }
+    },
+    {
+      "id": "nodebox.collect",
+      "label": "Evaluate fleet telemetry against nodebox rules",
+      "group": "hunt",
+      "summary": "Host-side pySigma over the telemetry stream. Reads only.",
+      "mutating": false,
+      "runner": "exec",
+      "timeout_ms": 60000,
+      "argv": [
+        "{python}",
+        "nodebox_cli.py",
+        "collect",
+        "{telemetry}",
+        "{rules_dir}"
+      ],
+      "args": [
+        {
+          "name": "telemetry",
+          "label": "telemetry stream",
+          "kind": "enum",
+          "required": true,
+          "default": "nodebox_telemetry.jsonl",
+          "source": {
+            "from": "static",
+            "values": [
+              {
+                "value": "nodebox_telemetry.jsonl",
+                "label": "live telemetry"
+              },
+              {
+                "value": "nodebox_demo_state/nodebox_telemetry.jsonl",
+                "label": "demo telemetry"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rules_dir",
+          "label": "rules",
+          "kind": "enum",
+          "required": true,
+          "default": "rules",
+          "source": {
+            "from": "static",
+            "values": [
+              {
+                "value": "rules",
+                "label": "rules/"
+              }
+            ]
+          }
+        }
+      ],
+      "output": {
+        "kind": "text-lines"
+      },
+      "docs": {
+        "notes": "Only rules/nodebox_*.yml are globbed by nodebox_collector.report(). Same code path as the collector's own report entrypoint. Both path-shaped arguments are closed enums whose members live in this file, so no caller-supplied path ever reaches argv."
+      }
+    },
+    {
+      "id": "nodebox.collect.ecs",
+      "label": "Evaluate telemetry + export ECS NDJSON",
+      "group": "hunt",
+      "summary": "Same evaluation, plus an ECS-normalized dump to a server-named file.",
+      "mutating": true,
+      "effects": [
+        "writes_repo_file"
+      ],
+      "runner": "exec",
+      "timeout_ms": 60000,
+      "confirm": "click",
+      "argv": [
+        "{python}",
+        "nodebox_cli.py",
+        "collect",
+        "{telemetry}",
+        "{rules_dir}",
+        "--ecs",
+        "{ecs_out}"
+      ],
+      "args": [
+        {
+          "name": "telemetry",
+          "label": "telemetry stream",
+          "kind": "enum",
+          "required": true,
+          "default": "nodebox_telemetry.jsonl",
+          "source": {
+            "from": "static",
+            "values": [
+              {
+                "value": "nodebox_telemetry.jsonl",
+                "label": "live telemetry"
+              },
+              {
+                "value": "nodebox_demo_state/nodebox_telemetry.jsonl",
+                "label": "demo telemetry"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rules_dir",
+          "label": "rules",
+          "kind": "enum",
+          "required": true,
+          "default": "rules",
+          "source": {
+            "from": "static",
+            "values": [
+              {
+                "value": "rules",
+                "label": "rules/"
+              }
+            ]
+          }
+        },
+        {
+          "name": "ecs_out",
+          "label": "ECS output",
+          "kind": "server",
+          "required": true,
+          "source": {
+            "from": "server",
+            "generator": "timestamp_path",
+            "params": {
+              "dir": "nodebox_demo_state",
+              "prefix": "ecs-dump-",
+              "ext": ".ndjson"
+            }
+          }
+        }
+      ],
+      "output": {
+        "kind": "text-lines"
+      },
+      "writes": [
+        "nodebox_demo_state/ecs-dump-<unix_ts>.ndjson"
+      ],
+      "docs": {
+        "notes": "write_ecs() truncates/creates its output and mkdirs the parent, so this is the one place a caller-chosen path would become a write target. It is a kind:\"server\" arg: the server generates the name exactly as toolbox-rs does today, and a caller-supplied value for it is a 400, never an override."
+      }
+    },
+    {
+      "id": "nodebox.ssh.task.preview",
+      "label": "SSH task - build argv (preview)",
+      "group": "fleet",
+      "summary": "Resolve a reviewed task against the inventory and show the exact hardened argv. Contacts no host.",
+      "mutating": true,
+      "effects": [
+        "appends_telemetry"
+      ],
+      "runner": "exec",
+      "timeout_ms": 30000,
+      "confirm": "none",
+      "argv": [
+        "{python}",
+        "toolbox_ssh_exec.py",
+        "--inventory",
+        "inventory.json",
+        "--node",
+        "{node}",
+        "--task",
+        "{task}"
+      ],
+      "args": [
+        {
+          "name": "node",
+          "label": "node",
+          "kind": "enum",
+          "required": true,
+          "source": {
+            "from": "view",
+            "capability": "view.fleet",
+            "args": {},
+            "items": "/inventory/nodes",
+            "value": "/node_id",
+            "label": "/alias",
+            "scope": "/node_id",
+            "where": [
+              {
+                "path": "/sshd",
+                "op": "neq",
+                "value": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "task",
+          "label": "reviewed task",
+          "kind": "enum",
+          "required": true,
+          "depends_on": "node",
+          "source": {
+            "from": "view",
+            "capability": "view.fleet",
+            "args": {},
+            "items": "/inventory/nodes",
+            "explode": "/tasks",
+            "value": "",
+            "label": "",
+            "scope": "/node_id"
+          }
+        }
+      ],
+      "output": {
+        "kind": "argv-preview",
+        "argv": "/argv"
+      },
+      "docs": {
+        "notes": "No host is contacted: toolbox_ssh_exec.py without --execute only builds the argv through nodebox_broker.ssh_session(dry_run=True). It is marked mutating (and is therefore POST-only) because _emit() runs BEFORE the dry-run return and appends one nodebox.ssh_session envelope to the telemetry stream. A byte is written, so this is not a read.",
+        "hazard": "The node dropdown excludes sshd:false hosts (the b628 router) because the broker refuses them anyway; the task dropdown is filtered to the selected node's own reviewed tasks."
+      }
+    },
+    {
+      "id": "nodebox.ssh.task.execute",
+      "label": "SSH task - execute the reviewed task",
+      "group": "fleet",
+      "summary": "Run the previewed argv against the real host.",
+      "mutating": true,
+      "effects": [
+        "contacts_host",
+        "appends_telemetry"
+      ],
+      "runner": "exec",
+      "timeout_ms": 30000,
+      "confirm": "type-id",
+      "requires_preview": "nodebox.ssh.task.preview",
+      "authz": {
+        "action": "ssh_task_execute",
+        "target": {
+          "arg": "node",
+          "prefix": "node:"
+        },
+        "required": true
+      },
+      "argv": [
+        "{python}",
+        "toolbox_ssh_exec.py",
+        "--inventory",
+        "inventory.json",
+        "--node",
+        "{node}",
+        "--task",
+        "{task}",
+        "--execute"
+      ],
+      "args": {
+        "from": "nodebox.ssh.task.preview"
+      },
+      "output": {
+        "kind": "json",
+        "facts": [
+          {
+            "label": "exit",
+            "path": "/exit_code"
+          },
+          {
+            "label": "argv",
+            "path": "/argv",
+            "as": "code"
+          }
+        ]
+      },
+      "docs": {
+        "hazard": "This runs the argv against a real host. It cannot be reached without (1) a single-use preview token bound to these exact arguments, (2) the capability id typed as confirmation, and (3) an allow from authz_gate.py. With no toolbox caller configured in authz_policy.yml, every request here is refused - deny by default, not deny by omission.",
+        "notes": "There is deliberately no dry_run boolean anywhere in this registry. Preview and execute are separate ids, so the old 'a body that omits dry_run EXECUTES' hazard is structurally impossible: omitting the body here yields 428 needs-preview."
+      }
+    },
+    {
+      "id": "validate.demo",
+      "label": "End-to-end loopback demo",
+      "group": "validate",
+      "summary": "Controller + three nodes + collector + gate on loopback; four rules fire, five alert-hits including the gate deny.",
+      "mutating": true,
+      "effects": [
+        "spawns_long_lived",
+        "binds_port",
+        "appends_telemetry",
+        "writes_state_dir"
+      ],
+      "runner": "service",
+      "confirm": "click",
+      "argv": [
+        "{python}",
+        "-u",
+        "nodebox_demo.py"
+      ],
+      "args": [],
+      "service": {
+        "singleton": true,
+        "log_cap": 500,
+        "stop_signal": "SIGTERM",
+        "grace_ms": 2000,
+        "reap_poll_ms": 300
+      },
+      "output": {
+        "kind": "log-stream",
+        "lines": "/lines"
+      },
+      "dashboard": {
+        "panel": "control",
+        "order": 5,
+        "refresh_seconds": 2
+      },
+      "docs": {
+        "notes": "-u keeps stdout unbuffered so the log streams instead of arriving all at once on exit; stderr lines are prefixed 'stderr: '. Same bounded 500-line ring as the current implementation. singleton:true reproduces today's 409 'demo already running', and now returns the live run_id with it."
+      }
+    },
+    {
+      "id": "validate.gen.c2_fixtures",
+      "label": "Regenerate C2 beacon flow fixtures",
+      "group": "validate",
+      "summary": "Emit the enriched-flow fixtures that rules/c2_relay_beacon.yml is proven against.",
+      "mutating": true,
+      "effects": [
+        "writes_repo_file"
+      ],
+      "runner": "exec",
+      "timeout_ms": 30000,
+      "confirm": "click",
+      "argv": [
+        "{python}",
+        "gen_c2_beacon_fixtures.py"
+      ],
+      "args": [],
+      "writes": [
+        "c2_beacon_attack.flowlog",
+        "c2_beacon_benign.flowlog"
+      ],
+      "output": {
+        "kind": "text-lines"
+      },
+      "docs": {
+        "notes": "The script takes no arguments and overwrites both fixtures in place. Re-run view.detections afterwards to prove the rule still fires on the attack fixture and stays silent on the benign one."
+      }
+    },
+    {
+      "id": "validate.gen.icmp_pcaps",
+      "label": "Regenerate ICMP exfil pcaps",
+      "group": "validate",
+      "summary": "Emit the two single-packet pcaps that rules/icmp_exfil.yml is proven against.",
+      "mutating": true,
+      "effects": [
+        "writes_repo_file"
+      ],
+      "runner": "exec",
+      "timeout_ms": 30000,
+      "confirm": "click",
+      "argv": [
+        "{python}",
+        "gen_icmp_pcaps.py"
+      ],
+      "args": [],
+      "writes": [
+        "icmp_exfil_attack.pcap",
+        "icmp_benign.pcap"
+      ],
+      "output": {
+        "kind": "text-lines"
+      },
+      "docs": {
+        "notes": "Identical shape to validate.gen.c2_fixtures with a different argv[1] and writes list - which is the whole point: a new command is a copy of one object."
+      }
+    },
+    {
+      "id": "hunt.coverage",
+      "label": "Signature coverage check",
+      "group": "hunt",
+      "summary": "Prove each shell_api_map signature is independently covered by its designated fixture.",
+      "mutating": false,
+      "runner": "exec",
+      "timeout_ms": 30000,
+      "argv": [
+        "{python}",
+        "check_coverage.py"
+      ],
+      "args": [],
+      "output": {
+        "kind": "text-lines"
+      },
+      "docs": {
+        "notes": "Reads schema/shell_api_map.yml, rules/ios_shell_abuse.yml and live_capture.log. Writes nothing; exit code carries the verdict."
+      }
+    },
+    {
+      "id": "nodebox.apply",
+      "label": "Dispatch a typed capability",
+      "group": "fleet",
+      "summary": "Documented, not routable.",
+      "mutating": false,
+      "runner": "exec",
+      "enabled": false,
+      "timeout_ms": 30000,
+      "argv": [
+        "{python}",
+        "nodebox_cli.py",
+        "apply",
+        "--node",
+        "{node}",
+        "--cap",
+        "{cap}"
+      ],
+      "args": [
+        {
+          "name": "node",
+          "label": "node",
+          "kind": "enum",
+          "required": true,
+          "source": {
+            "from": "view",
+            "capability": "view.fleet",
+            "args": {},
+            "items": "/inventory/nodes",
+            "value": "/node_id",
+            "label": "/alias"
+          }
+        },
+        {
+          "name": "cap",
+          "label": "capability",
+          "kind": "enum",
+          "required": true,
+          "source": {
+            "from": "static",
+            "values": [
+              {
+                "value": "PING",
+                "label": "PING"
+              },
+              {
+                "value": "INFO",
+                "label": "INFO"
+              },
+              {
+                "value": "STATUS",
+                "label": "STATUS"
+              },
+              {
+                "value": "DISCONNECT",
+                "label": "DISCONNECT"
+              },
+              {
+                "value": "SYNC_CONFIG",
+                "label": "SYNC_CONFIG"
+              },
+              {
+                "value": "FETCH_LOGS",
+                "label": "FETCH_LOGS"
+              },
+              {
+                "value": "CAPTURE_TELEMETRY",
+                "label": "CAPTURE_TELEMETRY"
+              },
+              {
+                "value": "RESTART_SERVICE",
+                "label": "RESTART_SERVICE"
+              },
+              {
+                "value": "UPDATE_RULESET",
+                "label": "UPDATE_RULESET"
+              }
+            ]
+          }
+        }
+      ],
+      "output": {
+        "kind": "pass-fail"
+      },
+      "docs": {
+        "notes": "NOT RUNNABLE. nodebox_cli.py cmd_apply raises SystemExit('apply requires a running controller in-process'); the real dispatch is Controller.apply(), which is gated by authz_gate and only exists inside a live controller process. Listed with enabled:false so the capability is visible and honest instead of a button that is guaranteed to 500. Any request returns 410 with this reason."
+      }
+    },
+    {
+      "id": "hunt.validate_rules",
+      "label": "Validate Sigma rules against fixtures",
+      "group": "hunt",
+      "summary": "Run the rule evaluator over every emulated fixture and report PASS/FAIL per rule.",
+      "mutating": false,
+      "runner": "exec",
+      "timeout_ms": 60000,
+      "argv": [
+        "{python}",
+        "validate_rules.py"
+      ],
+      "args": [],
+      "output": {
+        "kind": "pass-fail"
+      },
+      "dashboard": {
+        "panel": "detections",
+        "order": 3,
+        "refresh_seconds": 0
+      },
+      "docs": {
+        "notes": "Added as a pure registry row to demonstrate the core claim: no Rust rebuild, no TypeScript edit, no restart of anything but the server."
+      }
+    }
+  ]
+}

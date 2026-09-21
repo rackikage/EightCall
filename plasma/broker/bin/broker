@@ -1,0 +1,7 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# broker — control-plane entrypoint. Sets the package root and dispatches to the CLI.
+set -Eeuo pipefail
+BROKER_DIR="${BROKER_DIR:-$HOME/projects/broker}"
+BROKER_PY="${BROKER_PY:-python3}"
+export PYTHONPATH="$BROKER_DIR${PYTHONPATH:+:$PYTHONPATH}"
+exec "$BROKER_PY" -m broker "$@"

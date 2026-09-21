@@ -1,0 +1,7 @@
+User tor
+DataDirectory /var/lib/tor
+SocksPort 127.0.0.1:9050
+ClientUseIPv6 0
+HiddenServiceDir /var/lib/tor/hs
+HiddenServicePort 80 127.0.0.1:80
+Log notice stdout

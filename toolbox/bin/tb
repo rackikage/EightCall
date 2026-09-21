@@ -1,0 +1,91 @@
+#!/usr/bin/env node
+'use strict';
+const path = require('path');
+const { spawn } = require('child_process');
+const reg = require(path.join(__dirname, '..', 'lib', 'registry.js'));
+const mon = require(path.join(__dirname, '..', 'lib', 'monitor.js'));
+
+const args = process.argv.slice(2);
+const cmd = args[0] || 'help';
+const C = { r:'\x1b[0m', cyan:'\x1b[38;2;0;240;255m', mag:'\x1b[38;2;224;92;255m',
+  grn:'\x1b[38;2;5;255;161m', violet:'\x1b[38;2;185;103;255m', gold:'\x1b[38;2;255;211;0m',
+  rose:'\x1b[38;2;255;46;99m', dim:'\x1b[2m', b:'\x1b[1m' };
+
+// ---- script registry (catalog of runnable targets) ----
+function list(){
+  const r = reg.load(); let cat = null;
+  for (const it of r.items){
+    if (it.category !== cat){ cat = it.category; process.stdout.write(`\n${C.violet}${C.b}▓ ${cat}${C.r}\n`); }
+    const d = it.description ? `${C.dim} — ${it.description}${C.r}` : '';
+    process.stdout.write(`  ${C.cyan}${it.id.padEnd(22)}${C.r}${C.dim}${it.lang}${C.r}${d}\n`);
+  }
+  process.stdout.write(`\n${C.dim}${r.count} scripts${C.r}\n`);
+}
+function run(){
+  const it = reg.load().items.find(x => x.id === args[1]);
+  if (!it){ console.error(`${C.mag}no script "${args[1]}"${C.r} — try: tb list`); process.exit(1); }
+  console.error(`${C.grn}▶ ${it.name}${C.r} ${C.dim}${it.path}${C.r}`);
+  spawn(it.interpreter, [it.path, ...args.slice(2)], { stdio:'inherit' }).on('exit', c => process.exit(c || 0));
+}
+function scan(){ const r = reg.build(); console.log(`${C.grn}✓${C.r} indexed ${C.b}${r.count}${C.r} scripts`); }
+function showpath(){ const it = reg.load().items.find(x => x.id === args[1]); console.log(it ? it.path : ''); }
+
+// ---- strict folder monitor (discover -> state -> dispatch -> track) ----
+function status(){
+  const m = mon.refreshOnly();
+  const list = Object.values(m.entries || {});
+  if (!list.length){ console.log(`${C.dim}nothing discovered. Drop a "(r) name" folder (with a tb.launch.json) in a watch root, then: tb index${C.r}`); return; }
+  for (const e of list){
+    const col = e.state==='ready'?C.grn : e.state==='thinking'?C.gold : C.dim;
+    const badge = e.state==='ready'?'(r) READY' : e.state==='thinking'?'(t) THINKING' : e.state.toUpperCase();
+    console.log(`\n${col}${C.b}${badge}${C.r}  ${e.name}  ${C.dim}${e.folder}${C.r}`);
+    if (e.state==='thinking'){ console.log(`  ${C.dim}inspect-only${e.target ? ' · would target: '+(e.target.script||'') : ''}${C.r}`); continue; }
+    if (e.state==='gone'){ console.log(`  ${C.dim}${e.note}${C.r}`); }
+    if (e.state==='ready' && !e.target){ console.log(`  ${C.gold}no launch target — not dispatched${C.r}`); continue; }
+    if (e.dispatch){
+      console.log(`  ${C.violet}dispatch ${e.dispatch.id} · ${e.dispatch.status}${C.r}`);
+      for (const run of e.dispatch.runs){
+        const rc = run.status==='done'?(C.grn):(run.status==='failed'||run.status==='error')?C.rose:run.status==='running'?C.gold:C.dim;
+        const ex = run.exitCode!=null ? ` (exit ${run.exitCode})` : run.error ? ` (${run.error})` : '';
+        console.log(`    ${rc}${String(run.status).padEnd(8)}${C.r} ${run.label||run.node}${ex}`);
+      }
+    }
+  }
+}
+function index(){
+  const force = args.includes('--force');
+  const m = mon.reconcile({ force });
+  const l = Object.values(m.entries);
+  const ready = l.filter(e=>e.state==='ready').length, think = l.filter(e=>e.state==='thinking').length, gone = l.filter(e=>e.state==='gone').length;
+  console.log(`${C.grn}✓${C.r} reconciled — ${C.grn}${ready} ready${C.r}, ${C.gold}${think} thinking${C.r}${gone?`, ${C.dim}${gone} gone${C.r}`:''} (unlabelled folders untouched)`);
+  status();
+}
+function watch(){
+  const iv = (parseInt(args[1] || '10', 10) || 10) * 1000;
+  console.log(`${C.violet}watching every ${iv/1000}s — Ctrl+C to stop${C.r}`);
+  const tick = () => { try { mon.reconcile({}); } catch(e){ console.error(e.message); } };
+  tick(); setInterval(tick, iv);
+}
+
+function help(){
+  console.log(`${C.mag}${C.b}tb${C.r} ${C.dim}· strict script toolbox + folder dispatcher${C.r}
+
+${C.violet}monitor${C.r} ${C.dim}(disk -> (r)/(t) state -> dispatch -> track)${C.r}
+  ${C.cyan}tb index [--force]${C.r}  discover tagged folders, dispatch (r) ones, reconcile
+  ${C.cyan}tb status${C.r}           show only what's really been discovered/dispatched
+  ${C.cyan}tb watch [secs]${C.r}     re-index on a loop (persistent monitor)
+
+${C.violet}registry${C.r} ${C.dim}(catalog of launch targets)${C.r}
+  ${C.cyan}tb list${C.r}             every indexed script, by category
+  ${C.cyan}tb run <id> [args]${C.r}  run a script directly
+  ${C.cyan}tb scan${C.r}             re-index scripts
+  ${C.cyan}tb serve${C.r}            web UI at http://127.0.0.1:7842
+  ${C.cyan}tb path <id>${C.r}        print a script path
+
+${C.dim}A ready folder defines its target with a tb.launch.json:${C.r}
+  ${C.dim}{ "script": "<id-or-path>", "nodes": ["<id>", ...], "args": [] }${C.r}`);
+}
+function serve(){ require(path.join(__dirname, '..', 'server.js')); }
+
+const table = { index, status, watch, list, run, scan, serve, path: showpath, help };
+(table[cmd] || help)();

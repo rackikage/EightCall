@@ -1,0 +1,9 @@
+# Operator-controlled allowlist for livetail.py — the ONLY files the
+# observation stage may read. Labels are what callers pass; paths are what
+# tail opens. Relative paths resolve against this file's directory.
+# Add a deployment's real logs here (e.g. /var/log/app.log); a label not
+# listed here is refused before any process is spawned.
+
+# Repo fixture captures — safe demonstration sources:
+fixture-collected: collected_events.log
+fixture-live: live_capture.log

@@ -1,0 +1,58 @@
+schema: detect.authz.policy/v1
+
+# Operator-controlled authority for the nodebox controller's dispatch path.
+#
+# When a Controller is constructed with a gate built from this policy, every
+# `Controller.apply(node, capability)` becomes a signed request to the gate and
+# is dispatched ONLY on an explicit allow below. Deny by default: a capability
+# with no grant here is refused even if the node's inventory would permit it —
+# the two boundaries compose, they do not substitute for each other.
+#
+# Authority is NEVER inferred from the node, its telemetry, or a detection. A
+# Sigma hit may trigger the controller to ask; only a grant here authorizes.
+#
+# IMPORTANT: the controller signs PARAMLESS requests (caller/action/target/
+# nonce/issued_at). Do NOT add `params:` to a grant below expecting it to
+# constrain dispatch — the gate's param check is an allowlist over *requested*
+# params, so a paramless request matches a grant with params, and the params
+# would be silently ineffective. Operational params (config, ruleset, ...) are
+# enforced by the node itself, not the gate. Scope with `action` + `targets`.
+
+max_request_age_seconds: 120
+clock_skew_seconds: 30
+
+callers:
+  # The controller signs each dispatch request with this HMAC key. In
+  # production set DETECT_AUTHZ_KEY_NODEBOX in the controller's environment and
+  # keep the key with the operator, never in the repo. `target` is `node:<node_id>`.
+  nodebox-controller:
+    key_env: DETECT_AUTHZ_KEY_NODEBOX
+    grants:
+      # Non-mutating capabilities: allowed against any enrolled node.
+      - action: PING
+        targets: ["node:*"]
+      - action: INFO
+        targets: ["node:*"]
+      - action: STATUS
+        targets: ["node:*"]
+      - action: FETCH_LOGS
+        targets: ["node:*"]
+      - action: CAPTURE_TELEMETRY
+        targets: ["node:*"]
+      - action: DISCONNECT
+        targets: ["node:*"]
+
+      # Mutating capabilities: explicitly granted and time-boxed. The node still
+      # verifies the operational params itself (e.g. UPDATE_RULESET checks the
+      # controller signature); the gate only decides that the dispatch may occur.
+      - action: SYNC_CONFIG
+        targets: ["node:*"]
+        not_after: "2026-12-31T23:59:59Z"
+      - action: UPDATE_RULESET
+        targets: ["node:*"]
+        not_after: "2026-12-31T23:59:59Z"
+
+      # RESTART_SERVICE is intentionally NOT granted here. It is the most
+      # sensitive capability (it makes the agent exit for the supervisor to
+      # restart it), so it is denied by default at the gate: to enable it, add
+      # an explicit, scoped, expiring grant — do not widen the ones above.

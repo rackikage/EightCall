@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd agent for the nodebox node on macOS.
+  The XPC_SERVICE_NAME env var this sets is exactly what the agent's
+  supervisor_identity() reads, so the node's signed attestation can name the
+  service unit that launched it (attestation_scope reaches GUEST_USERSPACE).
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.nodebox.node</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>-m</string><string>nodebox_cli</string>
+    <string>node</string>
+    <string>--state-dir</string><string>/usr/local/var/nodebox</string>
+    <string>--device-type</string><string>workstation</string>
+    <string>--controller</string><string>127.0.0.1:9443</string>
+    <string>--controller-pub</string><string>REPLACE_WITH_CONTROLLER_PUBKEY_B64</string>
+    <string>--controller-id</string><string>REPLACE_WITH_CONTROLLER_ID</string>
+    <string>--telemetry</string><string>/usr/local/var/log/nodebox/telemetry.jsonl</string>
+    <string>--interval</string><string>30</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>10</integer>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardErrorPath</key><string>/usr/local/var/log/nodebox/node.err</string>
+  <key>StandardOutPath</key><string>/usr/local/var/log/nodebox/node.out</string>
+</dict>
+</plist>

@@ -1,0 +1,5 @@
+PyYAML==6.0.3
+scapy==2.7.0
+cryptography==50.0.1   # Ed25519 caller identity for the remote authz gate (pt2)
+pySigma==1.5.0                       # real Sigma engine for pysigma_shells.py
+pySigma-backend-elasticsearch==2.1.1 # compile rules to Lucene/ES DSL

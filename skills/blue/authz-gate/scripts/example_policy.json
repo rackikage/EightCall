@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "default_decision": "deny",
+  "roles": {
+    "viewer": {
+      "allow": ["audit.read", "status.read"]
+    },
+    "operator": {
+      "allow": ["service.read", "service.restart"],
+      "constraints": {
+        "environments": ["development", "staging"]
+      }
+    },
+    "production_operator": {
+      "allow": ["service.read", "service.restart"],
+      "constraints": {
+        "environments": ["production"],
+        "requires_approval": ["service.restart"]
+      }
+    }
+  },
+  "actions": {
+    "status.read": {
+      "resource_types": ["service"],
+      "parameters": {},
+      "execution": {
+        "handler": "read_status",
+        "shell_access": false,
+        "network_egress": "deny"
+      }
+    },
+    "audit.read": {
+      "resource_types": ["audit_log"],
+      "parameters": {},
+      "execution": {
+        "handler": "read_audit",
+        "shell_access": false,
+        "network_egress": "deny"
+      }
+    },
+    "service.read": {
+      "resource_types": ["service"],
+      "parameters": {},
+      "execution": {
+        "handler": "read_service",
+        "shell_access": false,
+        "network_egress": "deny"
+      }
+    },
+    "service.restart": {
+      "resource_types": ["service"],
+      "parameters": {
+        "graceful": {
+          "type": "boolean",
+          "required": true
+        }
+      },
+      "execution": {
+        "handler": "restart_service",
+        "shell_access": false,
+        "timeout_seconds": 60,
+        "network_egress": "deny"
+      }
+    }
+  },
+  "denials": [
+    {
+      "all": [
+        { "field": "environment", "op": "eq", "value": "production" },
+        { "field": "approval.valid", "op": "eq", "value": false }
+      ],
+      "reason": "Production restart requires a valid human approval."
+    }
+  ]
+}

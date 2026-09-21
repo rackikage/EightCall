@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+__pycache__/
+*.pyc
+
+# TypeScript build output (compiled from node/src by the Dockerfile;
+# bundle.sh already excludes it — never distributed via source).
+node/dist/
+dist/FLEET.tar.gz
+dist/FLEET.tar.gz.sha256
